@@ -1,32 +1,32 @@
 const features = [
   {
     icon: "🎮",
-    title: "HD GAMES",
-    desc: "Smooth visuals and fast load times on modern devices.",
+    title: "HUNDREDS OF GAMES",
+    desc: "Enjoy hundreds of slots and fishing games.",
     color: "#e63946",
   },
   {
     icon: "🎧",
     title: "CUSTOMER SUPPORT 24/7",
-    desc: "Support 24/7 on Facebook, Telegram & WhatsApp.",
+    desc: "Support 24/7 on Facebook & Telegram.",
     color: "#f9a825",
   },
   {
     icon: "🍀",
-    title: "DAILY OFFERS AND REWARDS",
+    title: "DAILY FREEPLAY AND REWARDS",
     desc: "Unlock bonuses, events, and loyalty perks.",
     color: "#2e7d32",
   },
   {
     icon: "🛡️",
-    title: "VERIFIED AGENT PAYMENTS",
-    desc: "Buy credits safely through verified agents.",
+    title: "VERIFIED AGENT",
+    desc: "Buy credits safely through verified agent.",
     color: "#00d4ff",
   },
   {
-    icon: "🔒",
-    title: "SECURE CREDIT SYSTEM",
-    desc: "Transactions are protected and monitored.",
+    icon: "💸",
+    title: "INSTANT PAYOUT",
+    desc: "Get your cash out instantly.",
     color: "#6c3fc5",
   },
 ];
