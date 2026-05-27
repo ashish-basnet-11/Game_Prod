@@ -76,7 +76,7 @@ export default async function GamesGrid() {
                     <div 
                       className="absolute inset-0 transition-opacity duration-300 group-hover:opacity-85"
                       style={{
-                        background: "linear-gradient(to top, rgba(7, 7, 26, 0.95) 0%, rgba(7, 7, 26, 0.4) 60%, rgba(7, 7, 26, 0.2) 100%)"
+                        background: "linear-gradient(to bottom, rgba(7, 7, 26, 0.95) 0%, rgba(7, 7, 26, 0.4) 50%, rgba(7, 7, 26, 0.1) 100%)"
                       }}
                     />
                   </div>
@@ -98,12 +98,17 @@ export default async function GamesGrid() {
                 )}
 
                 {/* Game graphics/emojis (Fades slightly when card is hovered) */}
-                <div className="w-full h-full flex flex-col items-center justify-between p-4 transition-all duration-300 group-hover:opacity-10 group-hover:scale-95 z-10 relative">
+                <div className="w-full h-full flex flex-col items-center justify-between p-4 transition-all duration-300 group-hover:opacity-10 z-10 relative">
+                  
+                  <div className="w-full mt-4">
+                    <p className="text-white text-xs font-display font-bold text-center leading-tight drop-shadow-md">
+                      {game.name}
+                    </p>
+                  </div>
+
                   {game.imageUrl ? (
-                    // Spacing element to push title to bottom
                     <div className="flex-1" />
                   ) : (
-                    // Emoji fallback
                     <div className="flex-1 flex items-center justify-center">
                       <span
                         className="text-4xl md:text-5xl"
@@ -113,10 +118,6 @@ export default async function GamesGrid() {
                       </span>
                     </div>
                   )}
-
-                  <p className="text-white text-xs font-display font-bold text-center leading-tight">
-                    {game.name}
-                  </p>
                 </div>
 
                 {/* Pure CSS Action Tray Overlay */}

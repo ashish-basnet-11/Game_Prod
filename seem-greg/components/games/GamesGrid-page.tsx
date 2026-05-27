@@ -52,7 +52,7 @@ export function ArchiveGamesGrid({ games }: ArchiveGamesGridProps) {
   }, [games, activeCategory, search, sort]);
 
   return (
-    <>
+    <section className="py-12 md:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
       {/* ── Toolbar ── */}
       <div className="flex flex-col md:flex-row gap-4 mb-10 items-start md:items-center justify-between">
         {/* Category tabs */}
@@ -140,13 +140,13 @@ export function ArchiveGamesGrid({ games }: ArchiveGamesGridProps) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
           {filtered.map((game) => (
             <GameCard key={game.id} game={game} />
           ))}
         </div>
       )}
-    </>
+    </section>
   );
 }
 
@@ -193,7 +193,7 @@ function GameCard({ game }: { game: Game }) {
           <div 
             className="absolute inset-0 transition-opacity duration-300"
             style={{
-              background: "linear-gradient(to top, rgba(7, 7, 26, 0.95) 0%, rgba(7, 7, 26, 0.4) 60%, rgba(7, 7, 26, 0.2) 100%)",
+              background: "linear-gradient(to bottom, rgba(7, 7, 26, 0.95) 0%, rgba(7, 7, 26, 0.4) 50%, rgba(7, 7, 26, 0.1) 100%)",
               opacity: hovered ? 0.85 : 1,
             }}
           />
@@ -224,16 +224,24 @@ function GameCard({ game }: { game: Game }) {
         {categoryLabel}
       </span>
 
-      {/* Main Content Info (Sliding up naturally on hover) */}
-      <div
-        className="w-full h-full flex flex-col items-center justify-between p-3 pb-4 transition-transform duration-300 z-10 relative"
-        style={{ transform: hovered ? "translateY(-20px)" : "translateY(0)" }}
-      >
+      {/* Main Content Info */}
+      <div className="w-full h-full flex flex-col items-center justify-between p-3 pb-4 z-10 relative">
+        
+        <div className="w-full mt-4 transition-transform duration-300" style={{ transform: hovered ? "translateY(4px)" : "translateY(0)" }}>
+          <p className="text-white text-[12px] font-display font-bold text-center leading-tight mb-1 drop-shadow-md">
+            {game.name}
+          </p>
+          <p
+            className="text-[9px] font-body text-center leading-tight px-1 transition-opacity duration-200 drop-shadow-md"
+            style={{ color: "rgba(255,255,255,0.7)", opacity: hovered ? 0 : 1 }}
+          >
+            {game.description}
+          </p>
+        </div>
+
         {game.imageUrl ? (
-          // Spacing element to push title to bottom
           <div className="flex-1" />
         ) : (
-          // Emoji fallback
           <div className="flex-1 flex items-center justify-center">
             <span
               className="text-4xl md:text-5xl mb-2"
@@ -246,23 +254,11 @@ function GameCard({ game }: { game: Game }) {
             </span>
           </div>
         )}
-
-        <div className="w-full mt-auto">
-          <p className="text-white text-[11px] font-display font-bold text-center leading-tight mb-1">
-            {game.name}
-          </p>
-          <p
-            className="text-[9px] font-body text-center leading-tight px-1 transition-opacity duration-200"
-            style={{ color: "rgba(255,255,255,0.38)", opacity: hovered ? 0.1 : 1 }}
-          >
-            {game.description}
-          </p>
-        </div>
       </div>
 
       {/* Dual action drawer shelf container */}
       <div
-        className="absolute bottom-0 left-0 right-0 p-3 flex flex-col gap-1.5 bg-gradient-to-t from-black/95 via-black/80 to-transparent z-20"
+        className="absolute bottom-0 left-0 right-0 p-3 flex flex-col gap-2 bg-gradient-to-t from-black/95 via-black/80 to-transparent z-20"
         style={{
           opacity: hovered ? 1 : 0,
           transform: hovered ? "translateY(0)" : "translateY(12px)",
@@ -270,7 +266,7 @@ function GameCard({ game }: { game: Game }) {
         }}
       >
         {/* Message Contact Button */}
-        <button className="w-full py-1 text-[9px] font-display font-bold text-white tracking-wider rounded bg-white/5 border border-white/10 hover:bg-white/15 transition-colors">
+        <button className="w-full py-1.5 md:py-2 text-[10px] md:text-[11px] font-display font-bold text-white tracking-wider rounded bg-white/5 border border-white/10 hover:bg-white/15 transition-colors">
           💬 MESSAGE ME
         </button>
 
@@ -280,7 +276,7 @@ function GameCard({ game }: { game: Game }) {
             href={game.gameUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full py-1 text-[9px] font-display font-bold text-white text-center tracking-wider rounded transition-transform active:scale-95 block"
+            className="w-full py-1.5 md:py-2 text-[10px] md:text-[11px] font-display font-bold text-white text-center tracking-wider rounded transition-transform active:scale-95 block"
             style={{
               background: "linear-gradient(135deg, #e63946, #c1121f)",
               boxShadow: "0 4px 10px rgba(230,57,70,0.3)",
@@ -291,7 +287,7 @@ function GameCard({ game }: { game: Game }) {
         ) : (
           <button
             disabled
-            className="w-full py-1 text-[9px] font-display font-bold text-center tracking-wider rounded border border-white/5 text-white/30 cursor-not-allowed bg-transparent opacity-40"
+            className="w-full py-1.5 md:py-2 text-[10px] md:text-[11px] font-display font-bold text-center tracking-wider rounded border border-white/5 text-white/30 cursor-not-allowed bg-transparent opacity-40"
           >
             🔒 NO LINK
           </button>
