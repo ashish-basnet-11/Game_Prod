@@ -39,6 +39,7 @@ app.use(helmet({
       objectSrc: ["'none'"],
     },
   },
+  crossOriginResourcePolicy: { policy: "cross-origin" },
   noSniff: true,
   hidePoweredBy: true,
   hsts: process.env.NODE_ENV === "production"

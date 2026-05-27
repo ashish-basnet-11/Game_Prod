@@ -162,7 +162,7 @@ function GameCard({ game }: { game: Game }) {
 
   return (
     <div
-      className="relative rounded-xl overflow-hidden cursor-default select-none"
+      className="relative rounded-xl overflow-hidden cursor-default select-none animate-fade-in"
       style={{
         background: hovered
           ? `linear-gradient(135deg, ${gameColor}44, ${gameColor}1a)`
@@ -178,6 +178,28 @@ function GameCard({ game }: { game: Game }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
+      {/* Card Background Image (if exists) */}
+      {game.imageUrl && (
+        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+          <img
+            src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${game.imageUrl}`}
+            alt={game.name}
+            className="w-full h-full object-cover"
+            style={{
+              transform: hovered ? "scale(1.1)" : "scale(1)",
+              transition: "transform 0.5s ease",
+            }}
+          />
+          <div 
+            className="absolute inset-0 transition-opacity duration-300"
+            style={{
+              background: "linear-gradient(to top, rgba(7, 7, 26, 0.95) 0%, rgba(7, 7, 26, 0.4) 60%, rgba(7, 7, 26, 0.2) 100%)",
+              opacity: hovered ? 0.85 : 1,
+            }}
+          />
+        </div>
+      )}
+
       {/* Badge */}
       {game.badge && (
         <span
@@ -204,48 +226,43 @@ function GameCard({ game }: { game: Game }) {
 
       {/* Main Content Info (Sliding up naturally on hover) */}
       <div
-        className="w-full h-full flex flex-col items-center justify-center p-3 pb-4 transition-transform duration-300"
+        className="w-full h-full flex flex-col items-center justify-between p-3 pb-4 transition-transform duration-300 z-10 relative"
         style={{ transform: hovered ? "translateY(-20px)" : "translateY(0)" }}
       >
-        {/* Updated Image/Emoji Fallback Logic here */}
         {game.imageUrl ? (
-          <div className="w-full h-24 md:h-28 relative mb-2 flex items-center justify-center overflow-hidden rounded-lg">
-            <img
-              src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${game.imageUrl}`}
-              alt={game.name}
-              className="max-w-full max-h-full object-contain"
+          // Spacing element to push title to bottom
+          <div className="flex-1" />
+        ) : (
+          // Emoji fallback
+          <div className="flex-1 flex items-center justify-center">
+            <span
+              className="text-4xl md:text-5xl mb-2"
               style={{
-                filter: `drop-shadow(0 0 ${hovered ? "16px" : "8px"} ${gameColor}${hovered ? "66" : "44"})`,
+                filter: `drop-shadow(0 0 ${hovered ? "16px" : "6px"} ${gameColor})`,
                 transition: "filter 0.25s ease",
               }}
-            />
+            >
+              {game.emoji}
+            </span>
           </div>
-        ) : (
-          <span
-            className="text-4xl md:text-5xl mb-2"
-            style={{
-              filter: `drop-shadow(0 0 ${hovered ? "16px" : "6px"} ${gameColor})`,
-              transition: "filter 0.25s ease",
-            }}
-          >
-            {game.emoji}
-          </span>
         )}
 
-        <p className="text-white text-[11px] font-display font-bold text-center leading-tight mb-1">
-          {game.name}
-        </p>
-        <p
-          className="text-[9px] font-body text-center leading-tight px-1 transition-opacity duration-200"
-          style={{ color: "rgba(255,255,255,0.38)", opacity: hovered ? 0.1 : 1 }}
-        >
-          {game.description}
-        </p>
+        <div className="w-full mt-auto">
+          <p className="text-white text-[11px] font-display font-bold text-center leading-tight mb-1">
+            {game.name}
+          </p>
+          <p
+            className="text-[9px] font-body text-center leading-tight px-1 transition-opacity duration-200"
+            style={{ color: "rgba(255,255,255,0.38)", opacity: hovered ? 0.1 : 1 }}
+          >
+            {game.description}
+          </p>
+        </div>
       </div>
 
       {/* Dual action drawer shelf container */}
       <div
-        className="absolute bottom-0 left-0 right-0 p-3 flex flex-col gap-1.5 bg-gradient-to-t from-black/90 via-black/60 to-transparent"
+        className="absolute bottom-0 left-0 right-0 p-3 flex flex-col gap-1.5 bg-gradient-to-t from-black/95 via-black/80 to-transparent z-20"
         style={{
           opacity: hovered ? 1 : 0,
           transform: hovered ? "translateY(0)" : "translateY(12px)",
@@ -284,7 +301,7 @@ function GameCard({ game }: { game: Game }) {
       {/* Subtle hover accent shimmer */}
       {hovered && (
         <div
-          className="absolute top-0 left-0 right-0 h-px"
+          className="absolute top-0 left-0 right-0 h-px z-10"
           style={{
             background: `linear-gradient(90deg, transparent, ${gameColor}, transparent)`,
           }}

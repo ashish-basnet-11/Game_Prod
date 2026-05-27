@@ -65,6 +65,23 @@ export default async function GamesGrid() {
                   aspectRatio: "1 / 1",
                 }}
               >
+                {/* Card Background Image (if exists) */}
+                {game.imageUrl && (
+                  <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+                    <img
+                      src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${game.imageUrl}`}
+                      alt={game.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div 
+                      className="absolute inset-0 transition-opacity duration-300 group-hover:opacity-85"
+                      style={{
+                        background: "linear-gradient(to top, rgba(7, 7, 26, 0.95) 0%, rgba(7, 7, 26, 0.4) 60%, rgba(7, 7, 26, 0.2) 100%)"
+                      }}
+                    />
+                  </div>
+                )}
+
                 {/* Badge indicator */}
                 {game.badge && (
                   <span
@@ -81,24 +98,20 @@ export default async function GamesGrid() {
                 )}
 
                 {/* Game graphics/emojis (Fades slightly when card is hovered) */}
-                <div className="w-full h-full flex flex-col items-center justify-center p-3 transition-all duration-300 group-hover:opacity-10 group-hover:scale-95">
+                <div className="w-full h-full flex flex-col items-center justify-between p-4 transition-all duration-300 group-hover:opacity-10 group-hover:scale-95 z-10 relative">
                   {game.imageUrl ? (
-                    <div className="w-full h-24 md:h-28 relative mb-2 flex items-center justify-center overflow-hidden rounded-lg">
-                      {/* Using HTML features: If the image breaks, it gets hidden via fallback CSS classes or standard broken render layout */}
-                      <img
-                        src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${game.imageUrl}`}
-                        alt={game.name}
-                        className="max-w-full max-h-full object-contain"
-                        style={{ filter: `drop-shadow(0 0 8px ${gameColor}44)` }}
-                      />
-                    </div>
+                    // Spacing element to push title to bottom
+                    <div className="flex-1" />
                   ) : (
-                    <span
-                      className="text-4xl md:text-5xl mb-2"
-                      style={{ filter: `drop-shadow(0 0 12px ${gameColor})` }}
-                    >
-                      {game.emoji}
-                    </span>
+                    // Emoji fallback
+                    <div className="flex-1 flex items-center justify-center">
+                      <span
+                        className="text-4xl md:text-5xl"
+                        style={{ filter: `drop-shadow(0 0 12px ${gameColor})` }}
+                      >
+                        {game.emoji}
+                      </span>
+                    </div>
                   )}
 
                   <p className="text-white text-xs font-display font-bold text-center leading-tight">
@@ -107,7 +120,7 @@ export default async function GamesGrid() {
                 </div>
 
                 {/* Pure CSS Action Tray Overlay */}
-                <div className="absolute inset-0 flex flex-col justify-center items-center gap-2 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/60 backdrop-blur-[1px]">
+                <div className="absolute inset-0 flex flex-col justify-center items-center gap-2 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/80 backdrop-blur-[2px] z-20">
                   {/* Message Me button */}
                   <button className="w-full text-[10px] md:text-xs font-display font-bold text-center text-white py-1.5 px-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/15 transition-colors">
                     💬 MESSAGE ME
