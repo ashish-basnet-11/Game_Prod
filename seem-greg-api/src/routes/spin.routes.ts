@@ -5,6 +5,7 @@
 import { Router } from "express";
 import {
   executeSpin,
+  checkSpinStatus,
   getPublicSpinRewards,
   getSpinRewards,
   saveSpinRewards,
@@ -16,6 +17,9 @@ import { publicLimiter, adminLimiter } from "../middleware/rateLimit.middleware"
 const router = Router();
 
 // ── Public ───────────────────────────────────────────────────────────────────
+
+// GET /spin/status — check if a fingerprint is currently on cooldown
+router.get("/status", publicLimiter, checkSpinStatus);
 
 // GET /spin/rewards — list all active rewards for public UI
 router.get("/rewards", publicLimiter, getPublicSpinRewards);

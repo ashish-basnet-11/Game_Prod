@@ -10,7 +10,6 @@ import {
 import GameFormModal from "@/components/admin/GameFormModal";
 import DeleteConfirmModal from "@/components/admin/DeleteConfirmModal";
 import AdminStatsBar from "@/components/admin/AdminStatsBar";
-import SpinWheelAdmin from "@/components/admin/SpinWheelAdmin";
 
 export default function AdminGamesPage() {
     const router = useRouter();
@@ -256,11 +255,6 @@ export default function AdminGamesPage() {
                         </div>
                     ))
                 )}
-            </div>
-
-            {/* ── Spin Wheel Config Section ────────────────────────────────── */}
-            <div className="mt-12 pt-8" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-                <SpinWheelAdmin />
             </div>
 
             {/* Modals */}

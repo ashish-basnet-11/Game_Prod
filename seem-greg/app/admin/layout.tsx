@@ -79,6 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <nav className="space-y-1">
                             {[
                                 { label: "🎮 Games", path: "/admin/dashboard" },
+                                { label: "🛞 Spin Wheel", path: "/admin/spinwheel" },
                                 { label: "🛡️ Agents Panel", path: "/admin/agents" },
                                 { label: "⚙️ Settings", path: "/admin/settings" },
                             ].map((item) => {

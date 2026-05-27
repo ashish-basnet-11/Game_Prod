@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { executeSpin, getPublicSpinRewardsApi, SpinReward } from "@/lib/api";
+import { executeSpin, getPublicSpinRewardsApi, checkSpinStatusApi, SpinReward } from "@/lib/api";
 
 const TG_USERNAME = "YOUR_TG_USERNAME"; // Replace with your actual Telegram handle
 
@@ -48,6 +48,21 @@ export default function LuckySpinWheel() {
       }
     })();
   }, []);
+
+  // ── Check spin status if fingerprint exists ─────────────────────────────────
+  useEffect(() => {
+    if (!fingerprint) return;
+    (async () => {
+      try {
+        const status = await checkSpinStatusApi(fingerprint);
+        if (!status.canSpin && status.msRemaining) {
+          setCooldown(status.msRemaining);
+        }
+      } catch (err) {
+        // Ignore check errors and fallback to default (let them try to spin)
+      }
+    })();
+  }, [fingerprint]);
 
   // ── Draw the wheel ──────────────────────────────────────────────────────────
   const drawWheel = useCallback((rotation: number) => {
@@ -189,9 +204,13 @@ export default function LuckySpinWheel() {
       // Animate to the winning segment
       const winIndex = data.winningIndex ?? 0;
       const segAngle = 360 / rewards.length;
-      // Target: align winning segment with the pointer (top-right, at ~0 degrees)
-      // We spin multiple full rotations + offset to land on the winning segment
-      const targetAngle = 360 * 6 + (360 - winIndex * segAngle - segAngle / 2);
+      // Target: align winning segment with the pointer (top-center, at 270 degrees / -90 degrees)
+      // The canvas 0 degrees is at 3 o'clock. To target 12 o'clock, we subtract 90 degrees (which is 270).
+      // We spin multiple full rotations + offset to land on the winning segment.
+      // We add a random offset within the segment (10% to 90%) to make it feel organic,
+      // instead of landing perfectly in the dead-center every time.
+      const randomOffset = (Math.random() * 0.8 + 0.1) * segAngle;
+      const targetAngle = 360 * 6 + 270 - winIndex * segAngle - randomOffset;
       const startRotation = rotationRef.current;
       const totalRotation = targetAngle;
       const duration = 5000; // 5 seconds
@@ -405,7 +424,9 @@ export default function LuckySpinWheel() {
                 </button>
 
                 <p className="text-[11px] font-body text-white/30">
-                  One free spin every 24 hours. No login required.
+                  {process.env.NODE_ENV === "production" 
+                    ? "One free spin every 24 hours. No login required." 
+                    : "Development mode: One free spin every 1 minute."}
                 </p>
               </>
             )}

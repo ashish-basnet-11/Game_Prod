@@ -294,7 +294,7 @@ export default function SpinWheelAdmin() {
 
               {/* Weight */}
               <div className="flex items-center gap-1 shrink-0">
-                <span className="text-[9px] font-display text-white/30 tracking-wider">WT</span>
+                <span className="text-[9px] font-display text-white/30 tracking-wider">PROBABILITY</span>
                 <input
                   type="number"
                   min={1}

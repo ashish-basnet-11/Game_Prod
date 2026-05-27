@@ -11,7 +11,42 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 
-const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+const isProd = process.env.NODE_ENV === "production";
+const COOLDOWN_MS = isProd ? 24 * 60 * 60 * 1000 : 60 * 1000; // 24h in prod, 1m in dev
+
+// ── Public: Check spin status ───────────────────────────────────────────────
+
+export async function checkSpinStatus(req: Request, res: Response) {
+  try {
+    const { fingerprint } = req.query;
+    if (!fingerprint || typeof fingerprint !== "string") {
+      return res.status(400).json({ success: false, message: "Missing fingerprint" });
+    }
+
+    const existing = await prisma.anonymousSpin.findUnique({
+      where: { fingerprint },
+    });
+
+    if (existing) {
+      const isProd = process.env.NODE_ENV === "production";
+      const COOLDOWN_MS = isProd ? 24 * 60 * 60 * 1000 : 60 * 1000;
+      const elapsed = Date.now() - existing.lastSpunAt.getTime();
+
+      if (elapsed < COOLDOWN_MS) {
+        return res.json({
+          success: true,
+          canSpin: false,
+          msRemaining: COOLDOWN_MS - elapsed,
+        });
+      }
+    }
+
+    return res.json({ success: true, canSpin: true });
+  } catch (err) {
+    console.error("Check spin status error:", err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
 
 // ── Public: Get active rewards ──────────────────────────────────────────────
 

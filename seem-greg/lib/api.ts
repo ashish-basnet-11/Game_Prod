@@ -324,6 +324,13 @@ export async function getPublicSpinRewardsApi(): Promise<SpinReward[]> {
   return data.data || [];
 }
 
+/** Public — check spin cooldown status */
+export async function checkSpinStatusApi(fingerprint: string): Promise<{ canSpin: boolean; msRemaining?: number }> {
+  const res = await fetch(`${API_URL}/spin/status?fingerprint=${encodeURIComponent(fingerprint)}`);
+  const data = await res.json();
+  return data;
+}
+
 /** Admin — get rewards config */
 export async function getSpinRewards(): Promise<SpinReward[]> {
   return withAutoRefresh(async () => {
