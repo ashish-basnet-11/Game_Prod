@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Game {
+  id          String   @id @default(uuid())
+  name        String
+  emoji       String
+  color       String
+  badge       String   @default("")
+  category    String
+  description String
+  isNew       Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("games")
+}
+
+model User {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  passwordHash String
+  role         String         @default("admin")
+  createdAt    DateTime       @default(now())
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+// Stored refresh tokens — allows server-side revocation
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique          // hashed token stored here
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?                 // null = still valid
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}

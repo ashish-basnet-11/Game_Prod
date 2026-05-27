@@ -1,0 +1,22 @@
+.env
+node_modules
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Runtime data / Build outputs
+dist/
+.next/
+out/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local env overrides (if you use them)
+.env.local
+.env.development.local
+.env.production.local

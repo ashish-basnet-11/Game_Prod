@@ -1,0 +1,53 @@
+# Node modules
+node_modules/
+
+# Next.js build output
+.next/
+out/
+.vercel/
+.firebase/
+.serverless/
+
+# Production files
+build/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# IDE / editor directories
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+Thumbs.db
+._*
+
+# Typescript cache
+*.tsbuildinfo
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Misc
+*.pem
+
+# Yarn PnP files (if using Yarn)
+.pnp.*
+
+# Optional: lock files (uncomment to ignore)
+# package-lock.json
+# yarn.lock

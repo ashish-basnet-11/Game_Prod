@@ -1,0 +1,23 @@
+import Navbar from "@/components/Navbar";
+import Hero from "@/components/Hero";
+import GamesGrid from "@/components/GamesGrid";
+import KioskSection from "@/components/KioskSection";
+import TopFeatures from "@/components/TopFeatures";
+import SecurityFairPlay from "@/components/SecurityFairPlay";
+import FAQ from "@/components/FAQ";
+import Footer from "@/components/Footer";
+
+export default function Home() {
+  return (
+    <main className="min-h-screen">
+      <Navbar activePage="Home" />
+      <Hero />
+      <GamesGrid />
+      {/* <KioskSection /> */}
+      <TopFeatures />
+      <SecurityFairPlay />
+      <FAQ />
+      <Footer />
+    </main>
+  );
+}
