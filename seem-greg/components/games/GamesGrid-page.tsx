@@ -190,7 +190,7 @@ function GameCard({ game }: { game: Game }) {
               transition: "transform 0.5s ease",
             }}
           />
-          <div 
+          <div
             className="absolute inset-0 transition-opacity duration-300"
             style={{
               background: "linear-gradient(to bottom, rgba(7, 7, 26, 0.95) 0%, rgba(7, 7, 26, 0.4) 50%, rgba(7, 7, 26, 0.1) 100%)",
@@ -226,7 +226,7 @@ function GameCard({ game }: { game: Game }) {
 
       {/* Main Content Info */}
       <div className="w-full h-full flex flex-col items-center justify-between p-3 pb-4 z-10 relative">
-        
+
         <div className="w-full mt-4 transition-transform duration-300" style={{ transform: hovered ? "translateY(4px)" : "translateY(0)" }}>
           <p className="text-white text-[12px] font-display font-bold text-center leading-tight mb-1 drop-shadow-md">
             {game.name}
@@ -282,7 +282,7 @@ function GameCard({ game }: { game: Game }) {
               boxShadow: "0 4px 10px rgba(230,57,70,0.3)",
             }}
           >
-            📥 DOWNLOAD
+            📥 DOWNLOAD GAME
           </a>
         ) : (
           <button

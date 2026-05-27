@@ -4,6 +4,7 @@ import GamesGrid from "@/components/games/GamesGrid";
 import KioskSection from "@/components/KioskSection";
 import TopFeatures from "@/components/TopFeatures";
 import SecurityFairPlay from "@/components/Rules";
+import LuckySpinWheel from "@/components/LuckySpinWheel";
 import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 
@@ -14,8 +15,9 @@ export default function Home() {
       <Hero />
       <GamesGrid />
       {/* <KioskSection /> */}
-      <TopFeatures />
       <SecurityFairPlay />
+      <LuckySpinWheel />
+      <TopFeatures />
       <FAQ />
       <Footer />
     </main>

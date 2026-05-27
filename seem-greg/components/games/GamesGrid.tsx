@@ -73,7 +73,7 @@ export default async function GamesGrid() {
                       alt={game.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
-                    <div 
+                    <div
                       className="absolute inset-0 transition-opacity duration-300 group-hover:opacity-85"
                       style={{
                         background: "linear-gradient(to bottom, rgba(7, 7, 26, 0.95) 0%, rgba(7, 7, 26, 0.4) 50%, rgba(7, 7, 26, 0.1) 100%)"
@@ -99,7 +99,7 @@ export default async function GamesGrid() {
 
                 {/* Game graphics/emojis (Fades slightly when card is hovered) */}
                 <div className="w-full h-full flex flex-col items-center justify-between p-4 transition-all duration-300 group-hover:opacity-10 z-10 relative">
-                  
+
                   <div className="w-full mt-4">
                     <p className="text-white text-xs font-display font-bold text-center leading-tight drop-shadow-md">
                       {game.name}
@@ -136,7 +136,7 @@ export default async function GamesGrid() {
                       className="w-full text-[10px] md:text-xs font-display font-bold text-center text-white py-1.5 px-2 rounded-lg transition-transform active:scale-95 block"
                       style={{ background: "linear-gradient(135deg, #e63946, #c1121f)" }}
                     >
-                      📥 DOWNLOAD
+                      📥 DOWNLOAD GAME
                     </a>
                   ) : (
                     <button

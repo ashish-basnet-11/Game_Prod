@@ -50,3 +50,29 @@ model RefreshToken {
   @@index([userId])
   @@map("refresh_tokens")
 }
+
+// ── Lucky Spin Wheel ─────────────────────────────────────────────────────────
+
+// Admin-configurable reward items displayed on the wheel
+model SpinReward {
+  id        String   @id @default(uuid())
+  label     String                       // e.g. "$5 Bonus", "Free Spin", "50 Credits"
+  color     String   @default("#00d4ff") // hex colour for the wheel segment
+  weight    Int      @default(1)         // higher = more likely to land
+  sortOrder Int      @default(0)         // determines segment ordering on wheel
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("spin_rewards")
+}
+
+// One row per unique device fingerprint — auto-cleaned after 24 h
+model AnonymousSpin {
+  id          String   @id @default(uuid())
+  fingerprint String   @unique            // hardware hash from FingerprintJS
+  reward      String                      // label of the reward they won
+  lastSpunAt  DateTime @default(now())
+
+  @@map("anonymous_spins")
+}

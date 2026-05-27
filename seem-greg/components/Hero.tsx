@@ -132,8 +132,8 @@ export default async function Hero() {
             <div className="space-y-3 mb-8">
               {[
                 { icon: "⚡", label: "Instant withdrawals processed within minutes" },
-                { icon: "🛡️", label: "All transactions through verified agents only" },
-                { icon: "🎮", label: "200+ HD games across slots, fish & table games" },
+                { icon: "🛡️", label: "Daily Freeplay and Bonuses" },
+                { icon: "🎮", label: "200+ games across slots, fish & table games" },
               ].map((f) => (
                 <div key={f.label} className="flex items-center gap-3">
                   <div
@@ -154,7 +154,7 @@ export default async function Hero() {
 
             {/* Badge pills */}
             <div className="flex flex-wrap gap-2">
-              {["Available 24/7", "Verified Agents", "Instant Withdrawal", "Fair Play"].map((tag) => (
+              {["Available 24/7", "Verified Agent", "Instant Withdrawal", "Free Play"].map((tag) => (
                 <span
                   key={tag}
                   className="px-3 py-1 text-[10px] font-display font-bold tracking-[0.15em] uppercase rounded"

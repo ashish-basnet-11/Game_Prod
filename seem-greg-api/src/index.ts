@@ -9,6 +9,8 @@ import { UPLOAD_DIR } from "./middleware/upload.middleware";
 
 import authRoutes from "./routes/auth.routes";
 import gamesRoutes from "./routes/games.routes";
+import spinRoutes from "./routes/spin.routes";
+import { cleanupExpiredSpins } from "./controllers/spin.controller";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -135,6 +137,7 @@ app.get("/health", (_req, res) => {
 // ── Routes ────────────────────────────────────────────────────────────────────
 app.use("/auth", authRoutes);
 app.use("/games", gamesRoutes);
+app.use("/spin", spinRoutes);
 
 // ── 404 handler ───────────────────────────────────────────────────────────────
 app.use((_req, res) => {
@@ -170,8 +173,13 @@ async function cleanupExpiredTokens() {
   }
 }
 
+async function periodicCleanup() {
+  await cleanupExpiredTokens();
+  await cleanupExpiredSpins();
+}
+
 const SIX_HOURS = 6 * 60 * 60 * 1000;
-setInterval(cleanupExpiredTokens, SIX_HOURS);
+setInterval(periodicCleanup, SIX_HOURS);
 
 // ── Start ──────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {

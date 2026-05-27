@@ -280,3 +280,73 @@ export async function adminDeleteGame(id: string): Promise<void> {
     await apiFetch(`/games/admin/${id}`, { method: "DELETE" });
   });
 }
+
+// ── Lucky Spin Wheel ──────────────────────────────────────────────────────────
+
+export interface SpinReward {
+  id: string;
+  label: string;
+  color: string;
+  weight: number;
+  sortOrder: number;
+  isActive: boolean;
+}
+
+export interface SpinResult {
+  success: boolean;
+  winningIndex?: number;
+  reward?: string;
+  message?: string;
+  msRemaining?: number;
+}
+
+export interface SpinLog {
+  id: string;
+  fingerprint: string;
+  reward: string;
+  lastSpunAt: string;
+}
+
+/** Public — no auth required */
+export async function executeSpin(fingerprint: string): Promise<SpinResult> {
+  const res = await fetch(`${API_URL}/spin/execute`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ fingerprint }),
+  });
+  return res.json();
+}
+
+/** Public — get active rewards config */
+export async function getPublicSpinRewardsApi(): Promise<SpinReward[]> {
+  const res = await fetch(`${API_URL}/spin/rewards`);
+  const data = await res.json();
+  return data.data || [];
+}
+
+/** Admin — get rewards config */
+export async function getSpinRewards(): Promise<SpinReward[]> {
+  return withAutoRefresh(async () => {
+    const res = await apiFetch<ApiResponse<SpinReward[]>>("/spin/admin/rewards");
+    return res.data;
+  });
+}
+
+/** Admin — bulk-save rewards */
+export async function saveSpinRewards(rewards: Partial<SpinReward>[]): Promise<SpinReward[]> {
+  return withAutoRefresh(async () => {
+    const res = await apiFetch<ApiResponse<SpinReward[]>>("/spin/admin/rewards", {
+      method: "POST",
+      body: JSON.stringify({ rewards }),
+    });
+    return res.data;
+  });
+}
+
+/** Admin — get spin logs */
+export async function getSpinLogs(): Promise<SpinLog[]> {
+  return withAutoRefresh(async () => {
+    const res = await apiFetch<ApiResponse<SpinLog[]>>("/spin/admin/logs");
+    return res.data;
+  });
+}

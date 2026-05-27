@@ -44,8 +44,9 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
     const [removeImage, setRemoveImage] = useState(false);               // flag to delete existing
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // The existing image URL from the server (edit mode only)
-    const existingImageUrl = game?.imageUrl ?? null;
+    const existingImageUrl = game?.imageUrl 
+        ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${game.imageUrl}` 
+        : null;
     // What's currently displayed in the preview area
     const displayedImage = imagePreview ?? (!removeImage ? existingImageUrl : null);
 
