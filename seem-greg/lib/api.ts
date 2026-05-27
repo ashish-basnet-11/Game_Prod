@@ -15,6 +15,7 @@ export interface Game {
   id: string;
   name: string;
   emoji: string;
+  imageUrl: string | null; // null = no image uploaded; fall back to emoji
   color: string;
   badge: Badge;
   category: Category;
@@ -53,15 +54,13 @@ export class ApiError extends Error {
 }
 
 // ── CSRF helper ───────────────────────────────────────────────────────────────
-// Read the CSRF token from the readable sg_csrf cookie.
-// This is intentionally NOT httpOnly so the frontend can read it.
 function getCsrfToken(): string {
   if (typeof document === "undefined") return "";
   const match = document.cookie.match(/(?:^|;\s*)sg_csrf=([^;]+)/);
   return match ? match[1] : "";
 }
 
-// ── Base fetch ────────────────────────────────────────────────────────────────
+// ── Base fetch (JSON) ─────────────────────────────────────────────────────────
 
 async function apiFetch<T>(
   path: string,
@@ -70,7 +69,6 @@ async function apiFetch<T>(
   const { revalidate, isServerSide, ...fetchOptions } = options;
   const method = (fetchOptions.method || "GET").toUpperCase();
 
-  // State-changing requests get the CSRF token header (client-side only)
   const csrfHeaders: Record<string, string> =
     !isServerSide && ["POST", "PUT", "PATCH", "DELETE"].includes(method)
       ? { "X-CSRF-Token": getCsrfToken() }
@@ -83,13 +81,38 @@ async function apiFetch<T>(
       ...csrfHeaders,
       ...fetchOptions.headers,
     },
-    // Always send cookies (httpOnly cookies go automatically with credentials: include)
     credentials: "include",
-    // Next.js cache — server components only
     ...(revalidate !== undefined ? { next: { revalidate } } : {}),
   });
 
-  // Handle 401 with TOKEN_EXPIRED — caller can attempt refresh
+  if (res.status === 401) {
+    const body = await res.json().catch(() => ({}));
+    throw new ApiError(401, body.message || "Unauthorized", body.code);
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new ApiError(res.status, body.message || "Request failed");
+  }
+
+  return res.json();
+}
+
+// ── Multipart fetch (FormData — for endpoints that accept file uploads) ────────
+// Does NOT set Content-Type; the browser sets it automatically with the
+// correct multipart boundary when the body is FormData.
+
+async function apiFetchFormData<T>(path: string, method: "POST" | "PUT", formData: FormData): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`, {
+    method,
+    headers: {
+      // No Content-Type header — browser sets multipart/form-data + boundary
+      "X-CSRF-Token": getCsrfToken(),
+    },
+    credentials: "include",
+    body: formData,
+  });
+
   if (res.status === 401) {
     const body = await res.json().catch(() => ({}));
     throw new ApiError(401, body.message || "Unauthorized", body.code);
@@ -104,8 +127,7 @@ async function apiFetch<T>(
 }
 
 // ── Token refresh ─────────────────────────────────────────────────────────────
-// Called automatically when an access token expires.
-// The refresh token is in an httpOnly cookie — no JS interaction needed.
+
 export async function refreshSession(): Promise<AdminUser> {
   const res = await apiFetch<ApiResponse<{ user: AdminUser }>>("/auth/refresh", {
     method: "POST",
@@ -113,18 +135,13 @@ export async function refreshSession(): Promise<AdminUser> {
   return res.data.user;
 }
 
-/**
- * Wraps any admin API call with automatic token refresh on expiry.
- * If refresh also fails, throws so the caller can redirect to login.
- */
 async function withAutoRefresh<T>(fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
   } catch (err) {
     if (err instanceof ApiError && err.status === 401 && err.code === "TOKEN_EXPIRED") {
-      // Try to refresh once
       await refreshSession();
-      return fn(); // retry original call
+      return fn();
     }
     throw err;
   }
@@ -161,11 +178,7 @@ export async function getGame(id: string): Promise<Game> {
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
-export async function loginAdmin(
-  email: string,
-  password: string
-): Promise<AdminUser> {
-  // Login sets httpOnly cookies — we only get the user object back
+export async function loginAdmin(email: string, password: string): Promise<AdminUser> {
   const res = await apiFetch<ApiResponse<{ user: AdminUser }>>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
@@ -182,8 +195,7 @@ export async function getMe(): Promise<AdminUser> {
   return res.data.user;
 }
 
-// ── Admin game operations (client components) ─────────────────────────────────
-// All wrapped with auto-refresh — expired access tokens are silently refreshed.
+// ── Admin game operations ─────────────────────────────────────────────────────
 
 export async function adminGetGames(): Promise<Game[]> {
   return withAutoRefresh(async () => {
@@ -194,24 +206,62 @@ export async function adminGetGames(): Promise<Game[]> {
   });
 }
 
-export async function adminCreateGame(
-  data: Omit<Game, "id" | "createdAt" | "updatedAt">
-): Promise<Game> {
+// GameFormData is what the form sends — image is a File or null, not part of Game
+export interface GameFormData {
+  name: string;
+  emoji: string;
+  color: string;
+  badge: Badge;
+  category: Category;
+  description: string;
+  gameUrl: string;
+  isNew: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  image?: File | null;       // new upload
+  removeImage?: boolean;     // explicit removal (edit only)
+}
+
+/**
+ * Builds a FormData object from GameFormData.
+ * Always sends as multipart so the server can handle both
+ * JSON-only and file-upload cases with the same endpoint.
+ */
+function buildFormData(data: GameFormData): FormData {
+  const fd = new FormData();
+  fd.append("name", data.name);
+  fd.append("emoji", data.emoji);
+  fd.append("color", data.color);
+  fd.append("badge", data.badge);
+  fd.append("category", data.category);
+  fd.append("description", data.description);
+  fd.append("gameUrl", data.gameUrl ?? "");
+  fd.append("isNew", String(data.isNew));
+  fd.append("isActive", String(data.isActive));
+  fd.append("sortOrder", String(data.sortOrder));
+  if (data.image) fd.append("image", data.image);
+  if (data.removeImage) fd.append("removeImage", "true");
+  return fd;
+}
+
+export async function adminCreateGame(data: GameFormData): Promise<Game> {
   return withAutoRefresh(async () => {
-    const res = await apiFetch<ApiResponse<Game>>("/games/admin", {
-      method: "POST",
-      body: JSON.stringify(data),
-    });
+    const res = await apiFetchFormData<ApiResponse<Game>>(
+      "/games/admin",
+      "POST",
+      buildFormData(data)
+    );
     return res.data;
   });
 }
 
-export async function adminUpdateGame(id: string, data: Partial<Game>): Promise<Game> {
+export async function adminUpdateGame(id: string, data: GameFormData): Promise<Game> {
   return withAutoRefresh(async () => {
-    const res = await apiFetch<ApiResponse<Game>>(`/games/admin/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    });
+    const res = await apiFetchFormData<ApiResponse<Game>>(
+      `/games/admin/${id}`,
+      "PUT",
+      buildFormData(data)
+    );
     return res.data;
   });
 }

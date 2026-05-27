@@ -11,6 +11,7 @@ model Game {
   id          String   @id @default(uuid())
   name        String
   emoji       String
+  imageUrl    String?  // Optional uploaded image path, served from /uploads/games/
   color       String
   badge       String   @default("")
   category    String

@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect, FormEvent } from "react";
-import { Game, adminCreateGame, adminUpdateGame } from "@/lib/api";
+import { useState, useEffect, useRef, FormEvent } from "react";
+import { Game, GameFormData, adminCreateGame, adminUpdateGame } from "@/lib/api";
 
 type Category = "Slots" | "Fish Games" | "Table Games";
 type Badge = "HOT" | "NEW" | "TOP" | "";
@@ -16,6 +16,9 @@ const BADGES: Badge[] = ["", "HOT", "NEW", "TOP"];
 const EMOJI_SUGGESTIONS = ["🎰", "💎", "🌋", "🐉", "🦁", "🍓", "🧛", "🎅", "🍀", "🏺", "⚡", "🐠", "🦀", "🔱", "🦈", "🪸", "🚗", "🏁", "⚽", "🐯", "🃏", "🎡", "🎲", "🃟"];
 const COLOR_PRESETS = ["#e63946", "#00d4ff", "#ff6b35", "#ffd700", "#6c3fc5", "#22c55e", "#f97316", "#0288d1", "#7b1fa2", "#2e7d32", "#b71c1c", "#00897b"];
 
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const MAX_FILE_BYTES = 2 * 1024 * 1024; // 2 MB — matches server limit
+
 const DEFAULT_FORM = {
     name: "",
     emoji: "🎮",
@@ -25,7 +28,8 @@ const DEFAULT_FORM = {
     description: "",
     isNew: false,
     gameUrl: "",
-    isActive: true, sortOrder: 0,
+    isActive: true,
+    sortOrder: 0,
 };
 
 export default function GameFormModal({ game, onClose, onSaved }: GameFormModalProps) {
@@ -33,6 +37,17 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
     const [form, setForm] = useState({ ...DEFAULT_FORM });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
+
+    // Image state
+    const [imageFile, setImageFile] = useState<File | null>(null);      // newly selected file
+    const [imagePreview, setImagePreview] = useState<string | null>(null); // object URL for preview
+    const [removeImage, setRemoveImage] = useState(false);               // flag to delete existing
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // The existing image URL from the server (edit mode only)
+    const existingImageUrl = game?.imageUrl ?? null;
+    // What's currently displayed in the preview area
+    const displayedImage = imagePreview ?? (!removeImage ? existingImageUrl : null);
 
     useEffect(() => {
         if (game) {
@@ -46,22 +61,67 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
         } else {
             setForm({ ...DEFAULT_FORM });
         }
+        // Reset image state whenever the modal opens for a new game
+        setImageFile(null);
+        setImagePreview(null);
+        setRemoveImage(false);
     }, [game]);
 
+    // Revoke the object URL when the component unmounts or preview changes
+    useEffect(() => {
+        return () => {
+            if (imagePreview) URL.revokeObjectURL(imagePreview);
+        };
+    }, [imagePreview]);
+
     const set = (key: string, value: unknown) => setForm(prev => ({ ...prev, [key]: value }));
+
+    function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!ACCEPTED_TYPES.includes(file.type)) {
+            setError("Only JPEG, PNG, WebP, and GIF images are allowed.");
+            e.target.value = "";
+            return;
+        }
+        if (file.size > MAX_FILE_BYTES) {
+            setError("Image must be 2 MB or smaller.");
+            e.target.value = "";
+            return;
+        }
+
+        setError("");
+        setRemoveImage(false);
+        if (imagePreview) URL.revokeObjectURL(imagePreview);
+        setImageFile(file);
+        setImagePreview(URL.createObjectURL(file));
+    }
+
+    function handleRemoveImage() {
+        if (imagePreview) URL.revokeObjectURL(imagePreview);
+        setImageFile(null);
+        setImagePreview(null);
+        setRemoveImage(true); // tells the server to clear the existing imageUrl
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    }
 
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
         setError("");
 
-
+        const payload: GameFormData = {
+            ...form,
+            image: imageFile ?? null,
+            removeImage: isEdit ? removeImage : undefined,
+        };
 
         setSaving(true);
         try {
             if (isEdit && game) {
-                await adminUpdateGame(game.id, form);
+                await adminUpdateGame(game.id, payload);
             } else {
-                await adminCreateGame(form);
+                await adminCreateGame(payload);
             }
             onSaved();
         } catch (err) {
@@ -128,10 +188,15 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
                             style={{ background: `${form.color}12`, border: `1px solid ${form.color}30` }}
                         >
                             <div
-                                className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl shrink-0"
+                                className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl shrink-0 overflow-hidden"
                                 style={{ background: `${form.color}20`, border: `1px solid ${form.color}40` }}
                             >
-                                {form.emoji}
+                                {displayedImage ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={displayedImage} alt="preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    form.emoji
+                                )}
                             </div>
                             <div>
                                 <p className="font-display font-bold text-white text-sm">
@@ -140,6 +205,11 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
                                 <p className="font-body text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
                                     {form.category} {form.badge && `· ${form.badge}`}
                                 </p>
+                                {displayedImage && (
+                                    <p className="font-body text-[10px] mt-0.5" style={{ color: "rgba(0,212,255,0.6)" }}>
+                                        🖼 Image set — emoji used as fallback
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -153,8 +223,103 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
                             />
                         </Field>
 
+                        {/* Image upload */}
+                        <Field label="Game Image (optional)">
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept={ACCEPTED_TYPES.join(",")}
+                                onChange={handleFileChange}
+                                className="hidden"
+                                id="game-image-input"
+                            />
+
+                            {displayedImage ? (
+                                /* ── Image selected / existing ─────────────────── */
+                                <div className="flex items-center gap-3">
+                                    <div
+                                        className="w-20 h-20 rounded-xl overflow-hidden shrink-0"
+                                        style={{ border: "1px solid rgba(255,255,255,0.12)" }}
+                                    >
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={displayedImage} alt="game thumbnail" className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="flex flex-col gap-2 flex-1">
+                                        <p className="font-body text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
+                                            {imageFile ? imageFile.name : "Current image"}
+                                        </p>
+                                        <div className="flex gap-2">
+                                            <label
+                                                htmlFor="game-image-input"
+                                                className="px-3 py-1.5 rounded-lg text-xs font-display font-bold cursor-pointer transition-all"
+                                                style={{
+                                                    background: "rgba(0,212,255,0.1)",
+                                                    border: "1px solid rgba(0,212,255,0.25)",
+                                                    color: "#00d4ff",
+                                                }}
+                                            >
+                                                Replace
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={handleRemoveImage}
+                                                className="px-3 py-1.5 rounded-lg text-xs font-display font-bold transition-all"
+                                                style={{
+                                                    background: "rgba(230,57,70,0.1)",
+                                                    border: "1px solid rgba(230,57,70,0.25)",
+                                                    color: "#e63946",
+                                                }}
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* ── Drop zone / upload prompt ─────────────────── */
+                                <label
+                                    htmlFor="game-image-input"
+                                    className="flex flex-col items-center justify-center gap-2 rounded-xl cursor-pointer transition-all"
+                                    style={{
+                                        border: "1.5px dashed rgba(255,255,255,0.12)",
+                                        padding: "20px 16px",
+                                        background: "rgba(255,255,255,0.02)",
+                                    }}
+                                    onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = "rgba(0,212,255,0.4)"; }}
+                                    onDragLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
+                                    onDrop={e => {
+                                        e.preventDefault();
+                                        e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+                                        const file = e.dataTransfer.files?.[0];
+                                        if (file) {
+                                            // Reuse the same validation as the file input
+                                            if (!ACCEPTED_TYPES.includes(file.type)) { setError("Only JPEG, PNG, WebP, and GIF images are allowed."); return; }
+                                            if (file.size > MAX_FILE_BYTES) { setError("Image must be 2 MB or smaller."); return; }
+                                            setError("");
+                                            setRemoveImage(false);
+                                            if (imagePreview) URL.revokeObjectURL(imagePreview);
+                                            setImageFile(file);
+                                            setImagePreview(URL.createObjectURL(file));
+                                        }
+                                    }}
+                                >
+                                    <span className="text-2xl">🖼️</span>
+                                    <p className="font-display text-xs font-bold" style={{ color: "rgba(255,255,255,0.5)" }}>
+                                        Click or drag & drop to upload
+                                    </p>
+                                    <p className="font-body text-[10px]" style={{ color: "rgba(255,255,255,0.25)" }}>
+                                        JPEG · PNG · WebP · GIF · max 2 MB
+                                    </p>
+                                </label>
+                            )}
+
+                            <p className="text-[10px] mt-1.5" style={{ color: "rgba(255,255,255,0.25)" }}>
+                                Image takes priority on the card; emoji is shown if no image is set.
+                            </p>
+                        </Field>
+
                         {/* Emoji picker */}
-                        <Field label="Emoji Icon">
+                        <Field label="Emoji Icon (fallback)">
                             <div className="flex gap-2 items-center flex-wrap">
                                 <input
                                     type="text" maxLength={4}
@@ -253,7 +418,7 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
                             </p>
                         </Field>
 
-                        {/* ── Game / Download Link Input ── */}
+                        {/* Game / Download Link */}
                         <Field label="Game Link / Download URL">
                             <input
                                 type="url"
@@ -282,18 +447,8 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
 
                         {/* Toggles */}
                         <div className="grid grid-cols-2 gap-4">
-                            <Toggle
-                                label="Mark as New"
-                                value={form.isNew}
-                                onChange={v => set("isNew", v)}
-                                color="#a855f7"
-                            />
-                            <Toggle
-                                label="Active (visible)"
-                                value={form.isActive}
-                                onChange={v => set("isActive", v)}
-                                color="#22c55e"
-                            />
+                            <Toggle label="Mark as New" value={form.isNew} onChange={v => set("isNew", v)} color="#a855f7" />
+                            <Toggle label="Active (visible)" value={form.isActive} onChange={v => set("isActive", v)} color="#22c55e" />
                         </div>
                     </div>
 
@@ -329,7 +484,6 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
                 </form>
             </div>
 
-            {/* Input field styles injected inline */}
             <style jsx global>{`
         .input-field {
           width: 100%;
@@ -375,7 +529,6 @@ function Toggle({ label, value, onChange, color }: { label: string; value: boole
                 <span className="font-display text-[10px] tracking-widest uppercase" style={{ color: "rgba(255,255,255,0.4)" }}>
                     {label}
                 </span>
-                {/* Toggle pill */}
                 <div
                     className="w-9 h-5 rounded-full relative transition-all"
                     style={{ background: value ? color : "rgba(255,255,255,0.1)" }}

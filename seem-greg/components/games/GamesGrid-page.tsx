@@ -1,6 +1,8 @@
 // ============================================================================
 // 2. ARCHIVE FILTER GRID (Client Component Section)
 // ============================================================================
+
+// components/games/GamesGrid-page.tsx
 "use client";
 
 import { Game } from "@/lib/api";
@@ -151,6 +153,7 @@ export function ArchiveGamesGrid({ games }: ArchiveGamesGridProps) {
 function GameCard({ game }: { game: Game }) {
   const [hovered, setHovered] = useState(false);
   const hasUrl = !!game.gameUrl?.trim();
+  const gameColor = game.color || "#00d4ff";
 
   const categoryLabel =
     game.category === "Fish Games" ? "FISH"
@@ -162,13 +165,13 @@ function GameCard({ game }: { game: Game }) {
       className="relative rounded-xl overflow-hidden cursor-default select-none"
       style={{
         background: hovered
-          ? `linear-gradient(135deg, ${game.color}44, ${game.color}1a)`
-          : `linear-gradient(135deg, ${game.color}28, ${game.color}0d)`,
-        border: `1px solid ${hovered ? game.color + "88" : game.color + "33"}`,
+          ? `linear-gradient(135deg, ${gameColor}44, ${gameColor}1a)`
+          : `linear-gradient(135deg, ${gameColor}28, ${gameColor}0d)`,
+        border: `1px solid ${hovered ? gameColor + "88" : gameColor + "33"}`,
         aspectRatio: "3 / 4",
         transform: hovered ? "translateY(-4px)" : "translateY(0)",
         boxShadow: hovered
-          ? `0 12px 24px ${game.color}22, 0 0 15px ${game.color}11`
+          ? `0 12px 24px ${gameColor}22, 0 0 15px ${gameColor}11`
           : "none",
         transition: "all 0.25s ease",
       }}
@@ -204,15 +207,31 @@ function GameCard({ game }: { game: Game }) {
         className="w-full h-full flex flex-col items-center justify-center p-3 pb-4 transition-transform duration-300"
         style={{ transform: hovered ? "translateY(-20px)" : "translateY(0)" }}
       >
-        <span
-          className="text-4xl md:text-5xl mb-2"
-          style={{
-            filter: `drop-shadow(0 0 ${hovered ? "16px" : "6px"} ${game.color})`,
-            transition: "filter 0.25s ease",
-          }}
-        >
-          {game.emoji}
-        </span>
+        {/* Updated Image/Emoji Fallback Logic here */}
+        {game.imageUrl ? (
+          <div className="w-full h-24 md:h-28 relative mb-2 flex items-center justify-center overflow-hidden rounded-lg">
+            <img
+              src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${game.imageUrl}`}
+              alt={game.name}
+              className="max-w-full max-h-full object-contain"
+              style={{
+                filter: `drop-shadow(0 0 ${hovered ? "16px" : "8px"} ${gameColor}${hovered ? "66" : "44"})`,
+                transition: "filter 0.25s ease",
+              }}
+            />
+          </div>
+        ) : (
+          <span
+            className="text-4xl md:text-5xl mb-2"
+            style={{
+              filter: `drop-shadow(0 0 ${hovered ? "16px" : "6px"} ${gameColor})`,
+              transition: "filter 0.25s ease",
+            }}
+          >
+            {game.emoji}
+          </span>
+        )}
+
         <p className="text-white text-[11px] font-display font-bold text-center leading-tight mb-1">
           {game.name}
         </p>
@@ -267,7 +286,7 @@ function GameCard({ game }: { game: Game }) {
         <div
           className="absolute top-0 left-0 right-0 h-px"
           style={{
-            background: `linear-gradient(90deg, transparent, ${game.color}, transparent)`,
+            background: `linear-gradient(90deg, transparent, ${gameColor}, transparent)`,
           }}
         />
       )}
