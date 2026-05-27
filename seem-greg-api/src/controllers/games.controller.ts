@@ -5,15 +5,16 @@ import { prisma } from "../lib/prisma";
 // ── Validation schemas ──────────────────────────────────────────────────────
 
 export const createGameSchema = z.object({
-  name:        z.string().min(1, "Name is required").max(100),
-  emoji:       z.string().min(1, "Emoji is required").max(10),
-  color:       z.string().regex(/^#[0-9a-fA-F]{6}$/, "Color must be a valid hex code"),
-  badge:       z.enum(["HOT", "NEW", "TOP", ""]).default(""),
-  category:    z.enum(["Slots", "Fish Games", "Table Games"]),
+  name: z.string().min(1, "Name is required").max(100),
+  emoji: z.string().min(1, "Emoji is required").max(10),
+  color: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Color must be a valid hex code"),
+  badge: z.enum(["HOT", "NEW", "TOP", ""]).default(""),
+  category: z.enum(["Slots", "Fish Games", "Table Games"]),
   description: z.string().min(1, "Description is required").max(300),
-  isNew:       z.boolean().default(false),
-  isActive:    z.boolean().default(true),
-  sortOrder:   z.number().int().min(0).default(0),
+  gameUrl: z.string().max(500).optional().or(z.literal("")),
+  isNew: z.boolean().default(false),
+  isActive: z.boolean().default(true),
+  sortOrder: z.number().int().min(0).default(0),
 });
 
 export const updateGameSchema = createGameSchema.partial();

@@ -15,6 +15,7 @@ model Game {
   badge       String   @default("")
   category    String
   description String
+  gameUrl     String?
   isNew       Boolean  @default(false)
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(0)

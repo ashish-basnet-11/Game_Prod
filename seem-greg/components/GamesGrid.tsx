@@ -1,4 +1,8 @@
 // components/GamesGrid.tsx
+
+// ============================================================================
+// 1. HOMEPAGE GRID (Server Component - No React state hooks allowed here!)
+// ============================================================================
 import Link from "next/link";
 import { getGames, Game } from "@/lib/api";
 
@@ -45,10 +49,11 @@ export default async function GamesGrid() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 px-4">
             {games.map((game) => {
               const gameColor = game.color || "#00d4ff";
+              const hasUrl = !!game.gameUrl?.trim();
               return (
                 <div
                   key={game.id || game.name}
-                  className="game-card relative rounded-xl overflow-hidden cursor-pointer"
+                  className="game-card relative rounded-xl overflow-hidden group select-none"
                   style={{
                     background: `linear-gradient(135deg, ${gameColor}33, ${gameColor}11)`,
                     border: `1px solid ${gameColor}44`,
@@ -58,7 +63,7 @@ export default async function GamesGrid() {
                   {/* Badge indicator */}
                   {game.badge && (
                     <span
-                      className="absolute top-2 left-2 px-1.5 py-0.5 text-[10px] font-display font-bold rounded"
+                      className="absolute top-2 left-2 px-1.5 py-0.5 text-[10px] font-display font-bold rounded z-10"
                       style={{
                         background: game.badge === "HOT" ? "#e63946"
                           : game.badge === "NEW" ? "#00d4ff"
@@ -71,7 +76,7 @@ export default async function GamesGrid() {
                   )}
 
                   {/* Game graphics/emojis */}
-                  <div className="w-full h-full flex flex-col items-center justify-center p-3">
+                  <div className="w-full h-full flex flex-col items-center justify-center p-3 transition-all duration-300 group-hover:opacity-10 group-hover:scale-95">
                     <span
                       className="text-4xl md:text-5xl mb-2"
                       style={{ filter: `drop-shadow(0 0 12px ${gameColor})` }}
@@ -83,11 +88,30 @@ export default async function GamesGrid() {
                     </p>
                   </div>
 
-                  {/* Play Action Overlay */}
-                  <div className="absolute inset-0 bg-white/0 hover:bg-white/5 transition-colors flex items-end justify-center pb-2 opacity-0 hover:opacity-100">
-                    <span className="text-xs font-display font-bold text-white bg-brand-red px-3 py-1 rounded-full">
-                      PLAY NOW
-                    </span>
+                  {/* Action Overlay using pure Tailwind CSS utility groups */}
+                  <div className="absolute inset-0 flex flex-col justify-center items-center gap-2 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/60 backdrop-blur-[1px]">
+                    <button className="w-full text-[10px] md:text-xs font-display font-bold text-center text-white py-1.5 px-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/15 transition-colors">
+                      💬 MESSAGE ME
+                    </button>
+
+                    {hasUrl ? (
+                      <a
+                        href={game.gameUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full text-[10px] md:text-xs font-display font-bold text-center text-white py-1.5 px-2 rounded-lg transition-transform active:scale-95 block"
+                        style={{ background: "linear-gradient(135deg, #e63946, #c1121f)" }}
+                      >
+                        📥 DOWNLOAD
+                      </a>
+                    ) : (
+                      <button
+                        disabled
+                        className="w-full text-[10px] md:text-xs font-display font-bold text-center py-1.5 px-2 rounded-lg cursor-not-allowed opacity-30 border border-white/5 text-white/40"
+                      >
+                        🔒 NO LINK
+                      </button>
+                    )}
                   </div>
                 </div>
               );

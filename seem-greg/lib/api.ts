@@ -19,6 +19,7 @@ export interface Game {
   badge: Badge;
   category: Category;
   description: string;
+  gameUrl: string;
   isNew: boolean;
   isActive: boolean;
   sortOrder: number;

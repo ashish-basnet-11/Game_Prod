@@ -1,6 +1,10 @@
+// ============================================================================
+// 2. ARCHIVE FILTER GRID (Client Component Section)
+// ============================================================================
 "use client";
-import { useState, useMemo } from "react";
+
 import { Game } from "@/lib/api";
+import { useState, useMemo } from "react";
 
 type FilterCategory = "All" | "Slots" | "Fish Games" | "Table Games" | "New";
 
@@ -8,16 +12,17 @@ const categories: FilterCategory[] = ["All", "Slots", "Fish Games", "Table Games
 
 const sortOptions = [
   { value: "default", label: "Featured" },
-  { value: "name",    label: "A – Z" },
-  { value: "hot",     label: "Hot First" },
-  { value: "new",     label: "New First" },
+  { value: "name", label: "A – Z" },
+  { value: "hot", label: "Hot First" },
+  { value: "new", label: "New First" },
 ];
 
-interface GamesGridProps {
+interface ArchiveGamesGridProps {
   games: Game[];
 }
 
-export default function GamesGrid({ games }: GamesGridProps) {
+// Renamed from default to explicit named export to prevent layout crashes
+export function ArchiveGamesGrid({ games }: ArchiveGamesGridProps) {
   const [activeCategory, setActiveCategory] = useState<FilterCategory>("All");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("default");
@@ -91,7 +96,7 @@ export default function GamesGrid({ games }: GamesGridProps) {
                 border: "1px solid rgba(255,255,255,0.1)",
               }}
               onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(0,212,255,0.4)")}
-              onBlur={(e)  => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
             />
           </div>
 
@@ -145,24 +150,25 @@ export default function GamesGrid({ games }: GamesGridProps) {
 
 function GameCard({ game }: { game: Game }) {
   const [hovered, setHovered] = useState(false);
+  const hasUrl = !!game.gameUrl?.trim();
 
   const categoryLabel =
     game.category === "Fish Games" ? "FISH"
-    : game.category === "Table Games" ? "TABLE"
-    : "SLOT";
+      : game.category === "Table Games" ? "TABLE"
+        : "SLOT";
 
   return (
     <div
-      className="relative rounded-xl overflow-hidden cursor-pointer select-none"
+      className="relative rounded-xl overflow-hidden cursor-default select-none"
       style={{
         background: hovered
           ? `linear-gradient(135deg, ${game.color}44, ${game.color}1a)`
           : `linear-gradient(135deg, ${game.color}28, ${game.color}0d)`,
         border: `1px solid ${hovered ? game.color + "88" : game.color + "33"}`,
         aspectRatio: "3 / 4",
-        transform: hovered ? "translateY(-6px) scale(1.02)" : "translateY(0) scale(1)",
+        transform: hovered ? "translateY(-4px)" : "translateY(0)",
         boxShadow: hovered
-          ? `0 14px 30px ${game.color}33, 0 0 20px ${game.color}22`
+          ? `0 12px 24px ${game.color}22, 0 0 15px ${game.color}11`
           : "none",
         transition: "all 0.25s ease",
       }}
@@ -176,8 +182,8 @@ function GameCard({ game }: { game: Game }) {
           style={{
             background:
               game.badge === "HOT" ? "#e63946"
-              : game.badge === "NEW" ? "#00d4ff"
-              : "#ffd700",
+                : game.badge === "NEW" ? "#00d4ff"
+                  : "#ffd700",
             color: game.badge === "NEW" ? "#07071a" : "#fff",
           }}
         >
@@ -187,18 +193,21 @@ function GameCard({ game }: { game: Game }) {
 
       {/* Category chip */}
       <span
-        className="absolute top-2 right-2 px-1.5 py-0.5 text-[8px] font-display font-bold rounded opacity-60"
+        className="absolute top-2 right-2 px-1.5 py-0.5 text-[8px] font-display font-bold rounded opacity-60 z-10"
         style={{ background: "rgba(0,0,0,0.5)", color: "rgba(255,255,255,0.7)" }}
       >
         {categoryLabel}
       </span>
 
-      {/* Content */}
-      <div className="w-full h-full flex flex-col items-center justify-center p-3 pb-4">
+      {/* Main Content Info (Sliding up naturally on hover) */}
+      <div
+        className="w-full h-full flex flex-col items-center justify-center p-3 pb-4 transition-transform duration-300"
+        style={{ transform: hovered ? "translateY(-20px)" : "translateY(0)" }}
+      >
         <span
-          className="text-4xl md:text-5xl mb-3"
+          className="text-4xl md:text-5xl mb-2"
           style={{
-            filter: `drop-shadow(0 0 ${hovered ? "18px" : "8px"} ${game.color})`,
+            filter: `drop-shadow(0 0 ${hovered ? "16px" : "6px"} ${game.color})`,
             transition: "filter 0.25s ease",
           }}
         >
@@ -208,34 +217,52 @@ function GameCard({ game }: { game: Game }) {
           {game.name}
         </p>
         <p
-          className="text-[9px] font-body text-center leading-tight px-1"
-          style={{ color: "rgba(255,255,255,0.38)" }}
+          className="text-[9px] font-body text-center leading-tight px-1 transition-opacity duration-200"
+          style={{ color: "rgba(255,255,255,0.38)", opacity: hovered ? 0.1 : 1 }}
         >
           {game.description}
         </p>
       </div>
 
-      {/* Play button */}
+      {/* Dual action drawer shelf container */}
       <div
-        className="absolute bottom-0 left-0 right-0 flex justify-center pb-3"
+        className="absolute bottom-0 left-0 right-0 p-3 flex flex-col gap-1.5 bg-gradient-to-t from-black/90 via-black/60 to-transparent"
         style={{
           opacity: hovered ? 1 : 0,
-          transform: hovered ? "translateY(0)" : "translateY(8px)",
+          transform: hovered ? "translateY(0)" : "translateY(12px)",
           transition: "all 0.25s ease",
         }}
       >
-        <span
-          className="text-[10px] font-display font-bold text-white px-4 py-1.5 rounded-full"
-          style={{
-            background: "linear-gradient(135deg, #e63946, #c1121f)",
-            boxShadow: "0 4px 12px rgba(230,57,70,0.5)",
-          }}
-        >
-          PLAY NOW
-        </span>
+        {/* Message Contact Button */}
+        <button className="w-full py-1 text-[9px] font-display font-bold text-white tracking-wider rounded bg-white/5 border border-white/10 hover:bg-white/15 transition-colors">
+          💬 MESSAGE ME
+        </button>
+
+        {/* Validated game URL execution */}
+        {hasUrl ? (
+          <a
+            href={game.gameUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-1 text-[9px] font-display font-bold text-white text-center tracking-wider rounded transition-transform active:scale-95 block"
+            style={{
+              background: "linear-gradient(135deg, #e63946, #c1121f)",
+              boxShadow: "0 4px 10px rgba(230,57,70,0.3)",
+            }}
+          >
+            📥 DOWNLOAD
+          </a>
+        ) : (
+          <button
+            disabled
+            className="w-full py-1 text-[9px] font-display font-bold text-center tracking-wider rounded border border-white/5 text-white/30 cursor-not-allowed bg-transparent opacity-40"
+          >
+            🔒 NO LINK
+          </button>
+        )}
       </div>
 
-      {/* Shimmer line on hover */}
+      {/* Subtle hover accent shimmer */}
       {hovered && (
         <div
           className="absolute top-0 left-0 right-0 h-px"

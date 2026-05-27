@@ -17,9 +17,15 @@ const EMOJI_SUGGESTIONS = ["🎰", "💎", "🌋", "🐉", "🦁", "🍓", "🧛
 const COLOR_PRESETS = ["#e63946", "#00d4ff", "#ff6b35", "#ffd700", "#6c3fc5", "#22c55e", "#f97316", "#0288d1", "#7b1fa2", "#2e7d32", "#b71c1c", "#00897b"];
 
 const DEFAULT_FORM = {
-    name: "", emoji: "🎮", color: "#e63946",
-    badge: "" as Badge, category: "Slots" as Category,
-    description: "", isNew: false, isActive: true, sortOrder: 0,
+    name: "",
+    emoji: "🎮",
+    color: "#e63946",
+    badge: "" as Badge,
+    category: "Slots" as Category,
+    description: "",
+    isNew: false,
+    gameUrl: "",
+    isActive: true, sortOrder: 0,
 };
 
 export default function GameFormModal({ game, onClose, onSaved }: GameFormModalProps) {
@@ -34,6 +40,7 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
                 name: game.name, emoji: game.emoji, color: game.color,
                 badge: game.badge as Badge, category: game.category as Category,
                 description: game.description, isNew: game.isNew,
+                gameUrl: game.gameUrl || "",
                 isActive: game.isActive, sortOrder: game.sortOrder,
             });
         } else {
@@ -243,6 +250,20 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
                             />
                             <p className="text-right text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.25)" }}>
                                 {form.description.length}/300
+                            </p>
+                        </Field>
+
+                        {/* ── Game / Download Link Input ── */}
+                        <Field label="Game Link / Download URL">
+                            <input
+                                type="url"
+                                value={form.gameUrl}
+                                onChange={e => set("gameUrl", e.target.value)}
+                                placeholder="https://example.com/download-or-play-link"
+                                className="input-field"
+                            />
+                            <p className="text-[10px] mt-1" style={{ color: "rgba(255,255,255,0.25)" }}>
+                                Optional link for direct app downloads or internal game routing
                             </p>
                         </Field>
 
