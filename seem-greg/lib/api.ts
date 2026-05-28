@@ -178,12 +178,21 @@ export async function getGame(id: string): Promise<Game> {
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
-export async function loginAdmin(email: string, password: string): Promise<AdminUser> {
-  const res = await apiFetch<ApiResponse<{ user: AdminUser }>>("/auth/login", {
+export async function loginAdmin(email: string, password: string, captcha: string): Promise<AdminUser> {
+  // Call our Next.js API proxy to validate CAPTCHA before hitting the real backend
+  const res = await fetch(`/api/auth/login`, {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, captcha }),
   });
-  return res.data.user;
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({ message: res.statusText }));
+    throw new ApiError(res.status, body.message || "Login failed");
+  }
+
+  const body = await res.json();
+  return body.data.user;
 }
 
 export async function logoutAdmin(): Promise<void> {

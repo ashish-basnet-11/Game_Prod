@@ -8,14 +8,28 @@ export default function AdminLoginPage() {
     const searchParams = useSearchParams();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [captchaSvg, setCaptchaSvg] = useState("");
+    const [captchaInput, setCaptchaInput] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [checking, setChecking] = useState(true);
 
+    async function loadCaptcha() {
+        try {
+            const res = await fetch("/api/captcha");
+            const data = await res.json();
+            setCaptchaSvg(data.svg);
+        } catch {
+            // Ignore error
+        }
+        setCaptchaInput("");
+    }
+
     // If already logged in, skip login page
     useEffect(() => {
+        loadCaptcha();
         getMe()
-            .then(() => router.replace("/admin/games"))
+            .then(() => router.replace("/admin/dashboard"))
             .catch(() => setChecking(false));
     }, [router]);
 
@@ -25,21 +39,24 @@ export default function AdminLoginPage() {
         setLoading(true);
 
         try {
-            await loginAdmin(email, password);
+            await loginAdmin(email, password, captchaInput);
             // Cookies are now set by the browser automatically.
             // No token stored in JS — nothing to steal via XSS.
-            const next = searchParams.get("next") || "/admin/games";
+            const next = searchParams.get("next") || "/admin/dashboard";
             router.replace(next);
         } catch (err) {
+            // Reload CAPTCHA on failure
+            loadCaptcha();
+
             if (err instanceof ApiError) {
                 setError(err.status === 401
                     ? "Invalid email or password"
                     : err.status === 429
                         ? "Too many attempts. Please wait a few minutes."
-                        : "Login failed. Please try again."
+                        : err.message || "Login failed. Please try again."
                 );
             } else {
-                setError("Could not connect to the API. Is the backend running?");
+                setError("Could not connect to the API or Invalid CAPTCHA.");
             }
         } finally {
             setLoading(false);
@@ -132,6 +149,42 @@ export default function AdminLoginPage() {
                                 value={password} onChange={e => setPassword(e.target.value)}
                                 placeholder="••••••••"
                                 className="w-full px-4 py-3 rounded-lg font-body text-sm text-white placeholder-white/20 outline-none transition-all"
+                                style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
+                                onFocus={e => (e.currentTarget.style.borderColor = "rgba(0,212,255,0.5)")}
+                                onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
+                            />
+                        </div>
+
+                        {/* Custom CAPTCHA */}
+                        <div>
+                            <label className="block font-display text-[10px] tracking-widest text-white/50 uppercase mb-2">
+                                Verify you are human
+                            </label>
+                            <div className="flex gap-3 items-center mb-2">
+                                <div
+                                    className="px-4 py-2 rounded-lg select-none relative overflow-hidden flex-1 text-center flex items-center justify-center min-h-[60px]"
+                                    style={{
+                                        background: "linear-gradient(45deg, #10082e, #07071a)",
+                                        color: "#00d4ff",
+                                        border: "1px dashed rgba(0,212,255,0.3)"
+                                    }}
+                                    dangerouslySetInnerHTML={{ __html: captchaSvg }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={loadCaptcha}
+                                    className="w-10 h-10 shrink-0 flex items-center justify-center rounded-lg transition-all"
+                                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontSize: "1.2rem" }}
+                                    title="Reload CAPTCHA"
+                                >
+                                    ↻
+                                </button>
+                            </div>
+                            <input
+                                type="text" required autoComplete="off" maxLength={4}
+                                value={captchaInput} onChange={e => setCaptchaInput(e.target.value)}
+                                placeholder="Type the 4 digits..."
+                                className="w-full px-4 py-3 rounded-lg font-body text-sm text-white placeholder-white/20 outline-none transition-all text-center tracking-[0.2em]"
                                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}
                                 onFocus={e => (e.currentTarget.style.borderColor = "rgba(0,212,255,0.5)")}
                                 onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
