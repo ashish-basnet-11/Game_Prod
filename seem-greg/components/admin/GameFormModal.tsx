@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, FormEvent } from "react";
+import toast from "react-hot-toast";
 import { Game, GameFormData, adminCreateGame, adminUpdateGame } from "@/lib/api";
 
 type Category = "Slots" | "Fish Games" | "Table Games";
@@ -119,11 +120,15 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
 
         setSaving(true);
         try {
-            if (isEdit && game) {
-                await adminUpdateGame(game.id, payload);
-            } else {
-                await adminCreateGame(payload);
-            }
+            const savePromise = isEdit && game
+                ? adminUpdateGame(game.id, payload)
+                : adminCreateGame(payload);
+
+            await toast.promise(savePromise, {
+                loading: isEdit ? "Saving changes..." : "Creating game...",
+                success: isEdit ? "Game updated!" : "Game created!",
+                error: isEdit ? "Failed to update game." : "Failed to create game."
+            });
             onSaved();
         } catch (err) {
             setError(err instanceof Error ? err.message : "Save failed");

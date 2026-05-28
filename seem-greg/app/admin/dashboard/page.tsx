@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import {
     Game, ApiError,
     adminGetGames,
@@ -21,6 +22,7 @@ export default function AdminGamesPage() {
     const [formOpen, setFormOpen] = useState(false);
     const [editingGame, setEditingGame] = useState<Game | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<Game | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const fetchGames = useCallback(async () => {
         try {
@@ -45,7 +47,11 @@ export default function AdminGamesPage() {
         // Optimistic update
         setGames(prev => prev.map(g => g.id === game.id ? { ...g, isActive: !g.isActive } : g));
         try {
-            await adminToggleGame(game.id);
+            await toast.promise(adminToggleGame(game.id), {
+                loading: "Updating status...",
+                success: "Status updated!",
+                error: "Failed to update status."
+            });
         } catch {
             // Revert on failure
             setGames(prev => prev.map(g => g.id === game.id ? { ...g, isActive: game.isActive } : g));
@@ -53,12 +59,19 @@ export default function AdminGamesPage() {
     };
 
     const handleDelete = async (game: Game) => {
+        setIsDeleting(true);
         try {
-            await adminDeleteGame(game.id);
+            await toast.promise(adminDeleteGame(game.id), {
+                loading: "Deleting game...",
+                success: "Game deleted!",
+                error: "Failed to delete game."
+            });
             setGames(prev => prev.filter(g => g.id !== game.id));
             setDeleteTarget(null);
         } catch (err) {
-            alert(err instanceof Error ? err.message : "Delete failed");
+            // Handled by toast
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -270,6 +283,7 @@ export default function AdminGamesPage() {
                     game={deleteTarget}
                     onCancel={() => setDeleteTarget(null)}
                     onConfirm={() => handleDelete(deleteTarget)}
+                    deleting={isDeleting}
                 />
             )}
         </div>
