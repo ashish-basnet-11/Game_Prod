@@ -1,9 +1,9 @@
 "use client";
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { loginAdmin, getMe, ApiError } from "@/lib/api";
 
-export default function AdminLoginPage() {
+function AdminLoginContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [email, setEmail] = useState("");
@@ -216,5 +216,17 @@ export default function AdminLoginPage() {
                 </p>
             </div>
         </div>
+    );
+}
+
+export default function AdminLoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center" style={{ background: "#06060f" }}>
+                <div className="w-8 h-8 border-2 border-brand-red border-t-transparent rounded-full animate-spin" />
+            </div>
+        }>
+            <AdminLoginContent />
+        </Suspense>
     );
 }
