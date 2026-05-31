@@ -125,12 +125,12 @@ export async function login(req: Request, res: Response) {
       return;
     }
 
-    await issueTokens(res, { id: user.id, email: user.email, role: user.role });
+    const { csrfToken } = await issueTokens(res, { id: user.id, email: user.email, role: user.role });
 
     // Only send non-sensitive user info in body — no token
     res.json({
       success: true,
-      data: { user: { id: user.id, email: user.email, role: user.role } },
+      data: { user: { id: user.id, email: user.email, role: user.role }, csrfToken },
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -173,7 +173,7 @@ export async function refresh(req: Request, res: Response) {
     });
 
     // Issue fresh pair
-    await issueTokens(res, {
+    const { csrfToken } = await issueTokens(res, {
       id: stored.user.id,
       email: stored.user.email,
       role: stored.user.role,
@@ -181,7 +181,7 @@ export async function refresh(req: Request, res: Response) {
 
     res.json({
       success: true,
-      data: { user: { id: stored.user.id, email: stored.user.email, role: stored.user.role } },
+      data: { user: { id: stored.user.id, email: stored.user.email, role: stored.user.role }, csrfToken },
     });
   } catch (err) {
     console.error("Refresh error:", err);
@@ -219,7 +219,8 @@ export async function logout(req: Request, res: Response) {
  */
 export async function me(req: Request, res: Response) {
   const user = (req as any).user;
-  res.json({ success: true, data: { user } });
+  const csrfToken = req.cookies["sg_csrf"] || "";
+  res.json({ success: true, data: { user, csrfToken } });
 }
 
 /**

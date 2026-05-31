@@ -55,9 +55,20 @@ export class ApiError extends Error {
 
 // ── CSRF helper ───────────────────────────────────────────────────────────────
 function getCsrfToken(): string {
-  if (typeof document === "undefined") return "";
-  const match = document.cookie.match(/(?:^|;\s*)sg_csrf=([^;]+)/);
-  return match ? match[1] : "";
+  if (typeof window === "undefined") return "";
+  return localStorage.getItem("sg_csrf_token") || "";
+}
+
+function setCsrfToken(token: string) {
+  if (typeof window !== "undefined" && token) {
+    localStorage.setItem("sg_csrf_token", token);
+  }
+}
+
+function clearCsrfToken() {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("sg_csrf_token");
+  }
 }
 
 // ── Base fetch (JSON) ─────────────────────────────────────────────────────────
@@ -129,9 +140,10 @@ async function apiFetchFormData<T>(path: string, method: "POST" | "PUT", formDat
 // ── Token refresh ─────────────────────────────────────────────────────────────
 
 export async function refreshSession(): Promise<AdminUser> {
-  const res = await apiFetch<ApiResponse<{ user: AdminUser }>>("/auth/refresh", {
+  const res = await apiFetch<ApiResponse<{ user: AdminUser; csrfToken: string }>>("/auth/refresh", {
     method: "POST",
   });
+  setCsrfToken(res.data.csrfToken);
   return res.data.user;
 }
 
@@ -193,20 +205,23 @@ export async function loginAdmin(email: string, password: string, captcha: strin
 
   // 2. Now that CAPTCHA is valid, hit the real backend directly to authenticate
   // The backend will send Set-Cookie directly to the browser for the backend domain!
-  const res = await apiFetch<ApiResponse<{ user: AdminUser }>>("/auth/login", {
+  const res = await apiFetch<ApiResponse<{ user: AdminUser; csrfToken: string }>>("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
 
+  setCsrfToken(res.data.csrfToken);
   return res.data.user;
 }
 
 export async function logoutAdmin(): Promise<void> {
   await apiFetch("/auth/logout", { method: "POST" });
+  clearCsrfToken();
 }
 
 export async function getMe(): Promise<AdminUser> {
-  const res = await apiFetch<ApiResponse<{ user: AdminUser }>>("/auth/me");
+  const res = await apiFetch<ApiResponse<{ user: AdminUser; csrfToken: string }>>("/auth/me");
+  setCsrfToken(res.data.csrfToken);
   return res.data.user;
 }
 
