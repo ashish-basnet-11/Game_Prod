@@ -179,20 +179,26 @@ export async function getGame(id: string): Promise<Game> {
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
 export async function loginAdmin(email: string, password: string, captcha: string): Promise<AdminUser> {
-  // Call our Next.js API proxy to validate CAPTCHA before hitting the real backend
-  const res = await fetch(`/api/auth/login`, {
+  // 1. Validate CAPTCHA against our Next.js API proxy
+  const captchaRes = await fetch(`/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, captcha }),
+    body: JSON.stringify({ captcha }),
   });
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ message: res.statusText }));
-    throw new ApiError(res.status, body.message || "Login failed");
+  if (!captchaRes.ok) {
+    const body = await captchaRes.json().catch(() => ({ message: captchaRes.statusText }));
+    throw new ApiError(captchaRes.status, body.message || "CAPTCHA failed");
   }
 
-  const body = await res.json();
-  return body.data.user;
+  // 2. Now that CAPTCHA is valid, hit the real backend directly to authenticate
+  // The backend will send Set-Cookie directly to the browser for the backend domain!
+  const res = await apiFetch<ApiResponse<{ user: AdminUser }>>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+
+  return res.data.user;
 }
 
 export async function logoutAdmin(): Promise<void> {

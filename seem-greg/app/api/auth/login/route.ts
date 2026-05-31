@@ -33,38 +33,11 @@ export async function POST(req: Request) {
             return res;
         }
         
-        // CAPTCHA is valid. Forward the request to the real API
-        const backendRes = await fetch(`${API_URL}/auth/login`, {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                // Pass along origin/referer if needed, but primarily just content-type
-            },
-            body: JSON.stringify({ email, password }),
-        });
+        // CAPTCHA is valid. Return success to the client so it can hit the real API directly.
+        const res = NextResponse.json({ success: true, message: "CAPTCHA valid" });
+        res.headers.append('Set-Cookie', clearCookieHeader);
         
-        const data = await backendRes.text();
-        let jsonData;
-        try { 
-            jsonData = JSON.parse(data); 
-        } catch { 
-            jsonData = { message: data }; 
-        }
-        
-        const nextRes = NextResponse.json(jsonData, { status: backendRes.status });
-        
-        // Forward Set-Cookie headers from the real backend to the client
-        const setCookies = backendRes.headers.getSetCookie();
-        if (setCookies && setCookies.length > 0) {
-            setCookies.forEach(cookie => {
-                nextRes.headers.append("Set-Cookie", cookie);
-            });
-        }
-        
-        // Add our cookie clear header
-        nextRes.headers.append('Set-Cookie', clearCookieHeader);
-        
-        return nextRes;
+        return res;
     } catch (err) {
         return NextResponse.json({ message: "Internal server error" }, { status: 500 });
     }
