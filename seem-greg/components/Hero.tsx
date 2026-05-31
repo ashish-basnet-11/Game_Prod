@@ -229,28 +229,49 @@ export default async function Hero() {
 
             {/* Support card */}
             <div
-              className="rounded-2xl p-5 flex items-center gap-4"
+              className="rounded-2xl p-5 flex flex-col gap-5"
               style={{
                 background: "rgba(255,255,255,0.025)",
                 border: "1px solid rgba(0,212,255,0.15)",
               }}
             >
-              <div
-                className="w-12 h-12 rounded-xl shrink-0 flex items-center justify-center text-2xl"
-                style={{ background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)" }}
-              >
-                💬
+              <div className="flex items-center gap-4 w-full">
+                <div
+                  className="w-12 h-12 rounded-xl shrink-0 flex items-center justify-center text-2xl"
+                  style={{ background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)" }}
+                >
+                  💬
+                </div>
+                <div>
+                  <p className="font-display font-bold text-white text-sm tracking-wide">
+                    Agent Support 24/7
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
+                    Facebook · Telegram
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-display font-bold text-white text-sm tracking-wide">
-                  Agent Support 24/7
-                </p>
-                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>
-                  Facebook · Telegram
-                </p>
-              </div>
-              <div className="ml-auto text-xl" style={{ color: "rgba(0,212,255,0.4)" }}>
-                ›
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3">
+                <a
+                  href="#"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all text-white"
+                  style={{ background: "#229ED9", boxShadow: "0 4px 14px rgba(34,158,217,0.3)" }}
+                >
+                  Message us on Telegram
+                </a>
+                <a
+                  href="#"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all text-white"
+                  style={{ background: "#1877F2", boxShadow: "0 4px 14px rgba(24,119,242,0.3)" }}
+                >
+                  Message us on Facebook
+                </a>
               </div>
             </div>
           </div>
