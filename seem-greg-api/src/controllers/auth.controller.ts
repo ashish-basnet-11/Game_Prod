@@ -20,7 +20,7 @@ function getSecureCookieBase(maxAge: number) {
   return {
     httpOnly: true,                     // not readable by JS
     secure: isProd,                     // HTTPS only in prod
-    sameSite: "strict" as const,        // no cross-site sending
+    sameSite: (isProd ? "none" : "strict") as const, // none required for cross-site
     maxAge,
     path: "/",
   };
@@ -79,7 +79,7 @@ async function issueTokens(
   res.cookie(COOKIE_CSRF_NAME, csrfToken, {
     httpOnly: false,                    // intentionally readable by JS
     secure: isProd,
-    sameSite: "strict" as const,
+    sameSite: (isProd ? "none" : "strict") as const,
     maxAge: REFRESH_TOKEN_EXPIRY,
     path: "/",
   });
