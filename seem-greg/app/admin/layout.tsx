@@ -80,7 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             {[
                                 { label: "🎮 Games", path: "/admin/dashboard" },
                                 { label: "🛞 Spin Wheel", path: "/admin/spinwheel" },
-                                { label: "🛡️ Agents Panel", path: "/admin/agents" },
+                                // { label: "🛡️ Agents Panel", path: "/admin/agents" },
                                 { label: "⚙️ Settings", path: "/admin/settings" },
                             ].map((item) => {
                                 const active = pathname === item.path;
