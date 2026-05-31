@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     const secret = process.env.CAPTCHA_SECRET || 'fallback_secret_seemgreg_captcha';
