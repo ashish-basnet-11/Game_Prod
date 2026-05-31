@@ -6,20 +6,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(req: NextRequest) {
-    const { pathname } = req.nextUrl;
-
-    // Only guard /admin routes (but not /admin/login itself)
-    if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
-        const accessCookie = req.cookies.get("sg_access");
-
-        if (!accessCookie?.value) {
-            const loginUrl = new URL("/admin/login", req.url);
-            // Preserve intended destination so we can redirect back after login
-            loginUrl.searchParams.set("next", pathname);
-            return NextResponse.redirect(loginUrl);
-        }
-    }
-
+    // ── Cross-Domain Auth Fix ──────────────────────────────────────────────
+    // Because the frontend (vercel.app) and backend (onrender.com) are on 
+    // different domains, the browser will NOT send the 'sg_access' cookie to Vercel.
+    // Therefore, this middleware cannot see the cookie.
+    // The authentication check is now fully handled client-side in layout.tsx via getMe().
     return NextResponse.next();
 }
 
