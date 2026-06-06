@@ -69,13 +69,6 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
         setRemoveImage(false);
     }, [game]);
 
-    // Revoke the object URL when the component unmounts or preview changes
-    useEffect(() => {
-        return () => {
-            if (imagePreview) URL.revokeObjectURL(imagePreview);
-        };
-    }, [imagePreview]);
-
     const set = (key: string, value: unknown) => setForm(prev => ({ ...prev, [key]: value }));
 
     function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -95,13 +88,11 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
 
         setError("");
         setRemoveImage(false);
-        if (imagePreview) URL.revokeObjectURL(imagePreview);
         setImageFile(file);
         setImagePreview(URL.createObjectURL(file));
     }
 
     function handleRemoveImage() {
-        if (imagePreview) URL.revokeObjectURL(imagePreview);
         setImageFile(null);
         setImagePreview(null);
         setRemoveImage(true); // tells the server to clear the existing imageUrl
@@ -283,18 +274,19 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
                                 </div>
                             ) : (
                                 /* ── Drop zone / upload prompt ─────────────────── */
-                                <label
-                                    htmlFor="game-image-input"
+                                <div
                                     className="flex flex-col items-center justify-center gap-2 rounded-xl cursor-pointer transition-all"
                                     style={{
                                         border: "1.5px dashed rgba(255,255,255,0.12)",
                                         padding: "20px 16px",
                                         background: "rgba(255,255,255,0.02)",
                                     }}
-                                    onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = "rgba(0,212,255,0.4)"; }}
+                                    onClick={() => fileInputRef.current?.click()}
+                                    onDragOver={e => { e.preventDefault(); e.stopPropagation(); e.currentTarget.style.borderColor = "rgba(0,212,255,0.4)"; }}
                                     onDragLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
                                     onDrop={e => {
                                         e.preventDefault();
+                                        e.stopPropagation();
                                         e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
                                         const file = e.dataTransfer.files?.[0];
                                         if (file) {
@@ -303,7 +295,6 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
                                             if (file.size > MAX_FILE_BYTES) { setError("Image must be 2 MB or smaller."); return; }
                                             setError("");
                                             setRemoveImage(false);
-                                            if (imagePreview) URL.revokeObjectURL(imagePreview);
                                             setImageFile(file);
                                             setImagePreview(URL.createObjectURL(file));
                                         }
@@ -316,7 +307,7 @@ export default function GameFormModal({ game, onClose, onSaved }: GameFormModalP
                                     <p className="font-body text-[10px]" style={{ color: "rgba(255,255,255,0.25)" }}>
                                         JPEG · PNG · WebP · GIF · max 2 MB
                                     </p>
-                                </label>
+                                </div>
                             )}
 
                             <p className="text-[10px] mt-1.5" style={{ color: "rgba(255,255,255,0.25)" }}>

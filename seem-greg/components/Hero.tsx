@@ -3,7 +3,7 @@ import { getGames } from "@/lib/api";
 import GameTickerClient from "./games/GameTickerClient"; // We'll extract the ticker logic here
 
 const stats = [
-  { value: "500+", label: "Active Players" },
+  { value: "100+", label: "Active Players" },
   { value: "200+", label: "Games Available" },
   { value: "24/7", label: "Live Support" },
   { value: "100%", label: "Payout Rate" },
@@ -205,8 +205,8 @@ export default async function Hero() {
               {/* Mini stat row */}
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { n: "500+", l: "Players Online" },
-                  { n: "₱10M+", l: "Paid Out Today" },
+                  { n: "100+", l: "Players Online" },
+                  { n: "$1000+", l: "Paid Out Today" },
                 ].map((s) => (
                   <div
                     key={s.l}

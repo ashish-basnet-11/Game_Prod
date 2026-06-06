@@ -1,6 +1,6 @@
 const stats = [
   { value: "2018", label: "Year Founded" },
-  { value: "500+", label: "Active Players" },
+  { value: "100+", label: "Active Players" },
   { value: "200+", label: "Games Available" },
   { value: "15+", label: "Countries Served" },
 ];
