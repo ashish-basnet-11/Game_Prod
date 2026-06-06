@@ -103,7 +103,7 @@ export default async function GamesGrid() {
                   </p>
                   
                   <div className="mt-auto flex flex-col gap-2.5 sm:gap-3">
-                    <button className="w-full py-2.5 sm:py-3 px-4 rounded-xl font-display font-bold text-xs sm:text-sm text-white text-center transition-colors bg-[#0a0a0a] hover:bg-[#1a1a1a] border border-white/10 shadow-md flex items-center justify-center gap-2">
+                    <button className="w-full py-2.5 sm:py-3 px-2 rounded-xl font-display font-bold text-[10px] sm:text-xs text-white text-center transition-colors bg-[#0a0a0a] hover:bg-[#1a1a1a] border border-white/10 shadow-md flex items-center justify-center gap-1.5 whitespace-nowrap">
                       💬 MESSAGE ME
                     </button>
 
@@ -112,7 +112,7 @@ export default async function GamesGrid() {
                         href={game.gameUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full py-2.5 sm:py-3 px-4 rounded-xl font-display font-bold text-xs sm:text-sm text-white text-center transition-transform hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center justify-center gap-2"
+                        className="w-full py-2.5 sm:py-3 px-2 rounded-xl font-display font-bold text-[10px] sm:text-xs text-white text-center transition-transform hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center justify-center gap-1.5 whitespace-nowrap"
                         style={{ background: "linear-gradient(180deg, #e63946 0%, #a00b1a 100%)" }}
                       >
                         📥 DOWNLOAD GAME
@@ -120,7 +120,7 @@ export default async function GamesGrid() {
                     ) : (
                       <button
                         disabled
-                        className="w-full py-2.5 sm:py-3 px-4 rounded-xl font-display font-bold text-xs sm:text-sm text-white/40 text-center cursor-not-allowed border border-white/10 bg-white/5 flex items-center justify-center gap-2"
+                        className="w-full py-2.5 sm:py-3 px-2 rounded-xl font-display font-bold text-[10px] sm:text-xs text-white/40 text-center cursor-not-allowed border border-white/10 bg-white/5 flex items-center justify-center gap-1.5 whitespace-nowrap"
                       >
                         🔒 NO LINK
                       </button>

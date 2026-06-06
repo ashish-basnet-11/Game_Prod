@@ -258,19 +258,70 @@ export default async function Hero() {
                   href="#"
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all text-white"
-                  style={{ background: "#229ED9", boxShadow: "0 4px 14px rgba(34,158,217,0.3)" }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all group"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(34,158,217,0.15), rgba(34,158,217,0.08))",
+                    border: "1px solid rgba(34,158,217,0.35)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
+                  }}
                 >
-                  Message us on Telegram
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                    style={{ background: "#229ED9" }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L8.32 13.617l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.828.942z" />
+                    </svg>
+                  </div>
+                  <span style={{ color: "#229ED9" }}>Message us on Telegram</span>
+                  <svg
+                    className="ml-auto opacity-40 group-hover:opacity-70 group-hover:translate-x-0.5 transition-all"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#229ED9"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
                 </a>
+
                 <a
                   href="#"
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all text-white"
-                  style={{ background: "#1877F2", boxShadow: "0 4px 14px rgba(24,119,242,0.3)" }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all group"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(24,119,242,0.15), rgba(24,119,242,0.08))",
+                    border: "1px solid rgba(24,119,242,0.35)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
+                  }}
                 >
-                  Message us on Facebook
+                  <div
+                    className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                    style={{ background: "#1877F2" }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                      <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.268h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" />
+                    </svg>
+                  </div>
+                  <span style={{ color: "#1877F2" }}>Message us on Facebook</span>
+                  <svg
+                    className="ml-auto opacity-40 group-hover:opacity-70 group-hover:translate-x-0.5 transition-all"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#1877F2"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
                 </a>
               </div>
             </div>
