@@ -50,7 +50,7 @@ export default async function GamesGrid() {
         </div>
 
         {/* Grid layout */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 px-4">
+        <div className="grid grid-cols-1 min-[500px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 px-4">
           {games.map((game) => {
             const gameColor = game.color || "#00d4ff";
             const hasUrl = !!game.gameUrl?.trim();
@@ -58,94 +58,74 @@ export default async function GamesGrid() {
             return (
               <div
                 key={game.id || game.name}
-                className="game-card relative rounded-xl overflow-hidden group select-none"
+                className="game-card relative rounded-2xl overflow-hidden group select-none flex flex-col"
                 style={{
-                  background: `linear-gradient(135deg, ${gameColor}28, ${gameColor}0d)`,
-                  border: `1px solid ${gameColor}33`,
-                  aspectRatio: "1 / 1",
+                  background: "#1A1A2E",
+                  border: `1px solid rgba(255,255,255,0.05)`,
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.4)"
                 }}
               >
-                {/* Card Background Image (if exists) */}
-                {game.imageUrl && (
-                  <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+                {/* Image section */}
+                <div className="w-full h-48 sm:h-40 relative overflow-hidden bg-black/40 flex items-center justify-center shrink-0">
+                  {game.imageUrl ? (
                     <img
                       src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${game.imageUrl}`}
                       alt={game.name}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
-                    <div
-                      className="absolute inset-0 transition-opacity duration-300 group-hover:opacity-85"
-                      style={{
-                        background: "linear-gradient(to bottom, rgba(7, 7, 26, 0.95) 0%, rgba(7, 7, 26, 0.4) 50%, rgba(7, 7, 26, 0.1) 100%)"
-                      }}
-                    />
-                  </div>
-                )}
-
-                {/* Badge indicator */}
-                {game.badge && (
-                  <span
-                    className="absolute top-2 left-2 px-1.5 py-0.5 text-[10px] font-display font-bold rounded z-10"
-                    style={{
-                      background: game.badge === "HOT" ? "#e63946"
-                        : game.badge === "NEW" ? "#00d4ff"
-                          : "#ffd700",
-                      color: game.badge === "NEW" ? "#07071a" : "#fff",
-                    }}
-                  >
-                    {game.badge}
-                  </span>
-                )}
-
-                {/* Game graphics/emojis (Fades slightly when card is hovered) */}
-                <div className="w-full h-full flex flex-col items-center justify-between p-4 transition-all duration-300 group-hover:opacity-10 z-10 relative">
-
-                  <div className="w-full mt-4">
-                    <p className="text-white text-xs font-display font-bold text-center leading-tight drop-shadow-md">
-                      {game.name}
-                    </p>
-                  </div>
-
-                  {game.imageUrl ? (
-                    <div className="flex-1" />
                   ) : (
-                    <div className="flex-1 flex items-center justify-center">
-                      <span
-                        className="text-4xl md:text-5xl"
-                        style={{ filter: `drop-shadow(0 0 12px ${gameColor})` }}
-                      >
-                        {game.emoji}
-                      </span>
-                    </div>
+                    <span className="text-6xl" style={{ filter: `drop-shadow(0 0 12px ${gameColor})` }}>
+                      {game.emoji}
+                    </span>
+                  )}
+
+                  {/* Badge */}
+                  {game.badge && (
+                    <span
+                      className="absolute top-3 left-3 px-2 py-1 text-[10px] font-display font-bold tracking-wider rounded z-10 shadow-lg"
+                      style={{
+                        background: game.badge === "HOT" ? "#e63946" : game.badge === "NEW" ? "#00d4ff" : "#ffd700",
+                        color: game.badge === "NEW" ? "#07071a" : "#fff",
+                      }}
+                    >
+                      {game.badge}
+                    </span>
                   )}
                 </div>
 
-                {/* Pure CSS Action Tray Overlay */}
-                <div className="absolute inset-0 flex flex-col justify-center items-center gap-2 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/80 backdrop-blur-[2px] z-20">
-                  {/* Message Me button */}
-                  <button className="w-full text-[10px] md:text-xs font-display font-bold text-center text-white py-1.5 px-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/15 transition-colors">
-                    💬 MESSAGE ME
-                  </button>
-
-                  {/* Download Link button */}
-                  {hasUrl ? (
-                    <a
-                      href={game.gameUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full text-[10px] md:text-xs font-display font-bold text-center text-white py-1.5 px-2 rounded-lg transition-transform active:scale-95 block"
-                      style={{ background: "linear-gradient(135deg, #e63946, #c1121f)" }}
-                    >
-                      📥 DOWNLOAD GAME
-                    </a>
-                  ) : (
-                    <button
-                      disabled
-                      className="w-full text-[10px] md:text-xs font-display font-bold text-center py-1.5 px-2 rounded-lg cursor-not-allowed opacity-30 border border-white/5 text-white/40"
-                    >
-                      🔒 NO LINK
+                {/* Content section */}
+                <div className="p-4 sm:p-5 flex flex-col flex-1">
+                  <h3 className="text-lg sm:text-xl font-display font-bold text-white mb-1.5 sm:mb-2">
+                    {game.name}
+                  </h3>
+                  <p className="text-xs sm:text-sm font-body text-white/70 mb-5 sm:mb-6 line-clamp-2 leading-relaxed">
+                    {game.description || `Fast-paced arcade gameplay with futuristic visuals and immersive action.`}
+                  </p>
+                  
+                  <div className="mt-auto flex flex-col gap-2.5 sm:gap-3">
+                    <button className="w-full py-2.5 sm:py-3 px-4 rounded-xl font-display font-bold text-xs sm:text-sm text-white text-center transition-colors bg-[#0a0a0a] hover:bg-[#1a1a1a] border border-white/10 shadow-md flex items-center justify-center gap-2">
+                      💬 MESSAGE ME
                     </button>
-                  )}
+
+                    {hasUrl ? (
+                      <a
+                        href={game.gameUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-2.5 sm:py-3 px-4 rounded-xl font-display font-bold text-xs sm:text-sm text-white text-center transition-transform hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center justify-center gap-2"
+                        style={{ background: "linear-gradient(180deg, #e63946 0%, #a00b1a 100%)" }}
+                      >
+                        📥 DOWNLOAD GAME
+                      </a>
+                    ) : (
+                      <button
+                        disabled
+                        className="w-full py-2.5 sm:py-3 px-4 rounded-xl font-display font-bold text-xs sm:text-sm text-white/40 text-center cursor-not-allowed border border-white/10 bg-white/5 flex items-center justify-center gap-2"
+                      >
+                        🔒 NO LINK
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );

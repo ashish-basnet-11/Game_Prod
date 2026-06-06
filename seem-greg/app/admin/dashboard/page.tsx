@@ -188,16 +188,24 @@ export default function AdminGamesPage() {
                             onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.025)")}
                             onMouseLeave={e => (e.currentTarget.style.background = game.isActive ? "transparent" : "rgba(0,0,0,0.18)")}
                         >
-                            {/* Emoji */}
+                            {/* Icon / Image */}
                             <div
-                                className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
+                                className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 overflow-hidden"
                                 style={{
                                     background: `${game.color}18`,
                                     border: `1px solid ${game.color}33`,
                                     opacity: game.isActive ? 1 : 0.4,
                                 }}
                             >
-                                {game.emoji}
+                                {game.imageUrl ? (
+                                    <img
+                                        src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${game.imageUrl}`}
+                                        alt={game.name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    game.emoji
+                                )}
                             </div>
 
                             {/* Name + desc */}

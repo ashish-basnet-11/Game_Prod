@@ -140,7 +140,7 @@ export function ArchiveGamesGrid({ games }: ArchiveGamesGridProps) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
+        <div className="grid grid-cols-1 min-[500px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
           {filtered.map((game) => (
             <GameCard key={game.id} game={game} />
           ))}
@@ -151,7 +151,6 @@ export function ArchiveGamesGrid({ games }: ArchiveGamesGridProps) {
 }
 
 function GameCard({ game }: { game: Game }) {
-  const [hovered, setHovered] = useState(false);
   const hasUrl = !!game.gameUrl?.trim();
   const gameColor = game.color || "#00d4ff";
 
@@ -162,147 +161,83 @@ function GameCard({ game }: { game: Game }) {
 
   return (
     <div
-      className="relative rounded-xl overflow-hidden cursor-default select-none animate-fade-in"
+      className="game-card relative rounded-2xl overflow-hidden group select-none flex flex-col"
       style={{
-        background: hovered
-          ? `linear-gradient(135deg, ${gameColor}44, ${gameColor}1a)`
-          : `linear-gradient(135deg, ${gameColor}28, ${gameColor}0d)`,
-        border: `1px solid ${hovered ? gameColor + "88" : gameColor + "33"}`,
-        aspectRatio: "3 / 4",
-        transform: hovered ? "translateY(-4px)" : "translateY(0)",
-        boxShadow: hovered
-          ? `0 12px 24px ${gameColor}22, 0 0 15px ${gameColor}11`
-          : "none",
-        transition: "all 0.25s ease",
+        background: "#1A1A2E",
+        border: `1px solid rgba(255,255,255,0.05)`,
+        boxShadow: "0 10px 30px rgba(0,0,0,0.4)"
       }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
-      {/* Card Background Image (if exists) */}
-      {game.imageUrl && (
-        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+      {/* Image section */}
+      <div className="w-full h-48 sm:h-40 relative overflow-hidden bg-black/40 flex items-center justify-center shrink-0">
+        {game.imageUrl ? (
           <img
             src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}${game.imageUrl}`}
             alt={game.name}
-            className="w-full h-full object-cover"
-            style={{
-              transform: hovered ? "scale(1.1)" : "scale(1)",
-              transition: "transform 0.5s ease",
-            }}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
-          <div
-            className="absolute inset-0 transition-opacity duration-300"
+        ) : (
+          <span className="text-6xl" style={{ filter: `drop-shadow(0 0 12px ${gameColor})` }}>
+            {game.emoji}
+          </span>
+        )}
+        
+        {/* Badge */}
+        {game.badge && (
+          <span
+            className="absolute top-3 left-3 px-2 py-1 text-[10px] font-display font-bold tracking-wider rounded z-10 shadow-lg"
             style={{
-              background: "linear-gradient(to bottom, rgba(7, 7, 26, 0.95) 0%, rgba(7, 7, 26, 0.4) 50%, rgba(7, 7, 26, 0.1) 100%)",
-              opacity: hovered ? 0.85 : 1,
+              background: game.badge === "HOT" ? "#e63946" : game.badge === "NEW" ? "#00d4ff" : "#ffd700",
+              color: game.badge === "NEW" ? "#07071a" : "#fff",
             }}
-          />
-        </div>
-      )}
+          >
+            {game.badge}
+          </span>
+        )}
 
-      {/* Badge */}
-      {game.badge && (
+        {/* Category chip */}
         <span
-          className="absolute top-2 left-2 px-2 py-0.5 text-[9px] font-display font-bold rounded z-10"
-          style={{
-            background:
-              game.badge === "HOT" ? "#e63946"
-                : game.badge === "NEW" ? "#00d4ff"
-                  : "#ffd700",
-            color: game.badge === "NEW" ? "#07071a" : "#fff",
-          }}
+          className="absolute top-3 right-3 px-2 py-1 text-[9px] font-display font-bold tracking-wider rounded z-10 shadow-lg opacity-80"
+          style={{ background: "rgba(0,0,0,0.6)", color: "rgba(255,255,255,0.9)" }}
         >
-          {game.badge}
+          {categoryLabel}
         </span>
-      )}
-
-      {/* Category chip */}
-      <span
-        className="absolute top-2 right-2 px-1.5 py-0.5 text-[8px] font-display font-bold rounded opacity-60 z-10"
-        style={{ background: "rgba(0,0,0,0.5)", color: "rgba(255,255,255,0.7)" }}
-      >
-        {categoryLabel}
-      </span>
-
-      {/* Main Content Info */}
-      <div className="w-full h-full flex flex-col items-center justify-between p-3 pb-4 z-10 relative">
-
-        <div className="w-full mt-4 transition-transform duration-300" style={{ transform: hovered ? "translateY(4px)" : "translateY(0)" }}>
-          <p className="text-white text-[12px] font-display font-bold text-center leading-tight mb-1 drop-shadow-md">
-            {game.name}
-          </p>
-          <p
-            className="text-[9px] font-body text-center leading-tight px-1 transition-opacity duration-200 drop-shadow-md"
-            style={{ color: "rgba(255,255,255,0.7)", opacity: hovered ? 0 : 1 }}
-          >
-            {game.description}
-          </p>
-        </div>
-
-        {game.imageUrl ? (
-          <div className="flex-1" />
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <span
-              className="text-4xl md:text-5xl mb-2"
-              style={{
-                filter: `drop-shadow(0 0 ${hovered ? "16px" : "6px"} ${gameColor})`,
-                transition: "filter 0.25s ease",
-              }}
-            >
-              {game.emoji}
-            </span>
-          </div>
-        )}
       </div>
 
-      {/* Dual action drawer shelf container */}
-      <div
-        className="absolute bottom-0 left-0 right-0 p-3 flex flex-col gap-2 bg-gradient-to-t from-black/95 via-black/80 to-transparent z-20"
-        style={{
-          opacity: hovered ? 1 : 0,
-          transform: hovered ? "translateY(0)" : "translateY(12px)",
-          transition: "all 0.25s ease",
-        }}
-      >
-        {/* Message Contact Button */}
-        <button className="w-full py-1.5 md:py-2 text-[10px] md:text-[11px] font-display font-bold text-white tracking-wider rounded bg-white/5 border border-white/10 hover:bg-white/15 transition-colors">
-          💬 MESSAGE ME
-        </button>
-
-        {/* Validated game URL execution */}
-        {hasUrl ? (
-          <a
-            href={game.gameUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full py-1.5 md:py-2 text-[10px] md:text-[11px] font-display font-bold text-white text-center tracking-wider rounded transition-transform active:scale-95 block"
-            style={{
-              background: "linear-gradient(135deg, #e63946, #c1121f)",
-              boxShadow: "0 4px 10px rgba(230,57,70,0.3)",
-            }}
-          >
-            📥 DOWNLOAD GAME
-          </a>
-        ) : (
-          <button
-            disabled
-            className="w-full py-1.5 md:py-2 text-[10px] md:text-[11px] font-display font-bold text-center tracking-wider rounded border border-white/5 text-white/30 cursor-not-allowed bg-transparent opacity-40"
-          >
-            🔒 NO LINK
+      {/* Content section */}
+      <div className="p-4 sm:p-5 flex flex-col flex-1">
+        <h3 className="text-lg sm:text-xl font-display font-bold text-white mb-1.5 sm:mb-2">
+          {game.name}
+        </h3>
+        <p className="text-xs sm:text-sm font-body text-white/70 mb-5 sm:mb-6 line-clamp-2 leading-relaxed">
+          {game.description || `Fast-paced arcade gameplay with futuristic visuals and immersive action.`}
+        </p>
+        
+        <div className="mt-auto flex flex-col gap-2.5 sm:gap-3">
+          <button className="w-full py-2.5 sm:py-3 px-4 rounded-xl font-display font-bold text-xs sm:text-sm text-white text-center transition-colors bg-[#0a0a0a] hover:bg-[#1a1a1a] border border-white/10 shadow-md flex items-center justify-center gap-2">
+            💬 MESSAGE ME
           </button>
-        )}
-      </div>
 
-      {/* Subtle hover accent shimmer */}
-      {hovered && (
-        <div
-          className="absolute top-0 left-0 right-0 h-px z-10"
-          style={{
-            background: `linear-gradient(90deg, transparent, ${gameColor}, transparent)`,
-          }}
-        />
-      )}
+          {hasUrl ? (
+            <a
+              href={game.gameUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2.5 sm:py-3 px-4 rounded-xl font-display font-bold text-xs sm:text-sm text-white text-center transition-transform hover:-translate-y-0.5 active:scale-95 shadow-lg flex items-center justify-center gap-2"
+              style={{ background: "linear-gradient(180deg, #e63946 0%, #a00b1a 100%)" }}
+            >
+              📥 DOWNLOAD GAME
+            </a>
+          ) : (
+            <button
+              disabled
+              className="w-full py-2.5 sm:py-3 px-4 rounded-xl font-display font-bold text-xs sm:text-sm text-white/40 text-center cursor-not-allowed border border-white/10 bg-white/5 flex items-center justify-center gap-2"
+            >
+              🔒 NO LINK
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

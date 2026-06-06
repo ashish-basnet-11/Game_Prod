@@ -43,6 +43,19 @@ async function main() {
     },
   });
   console.log("✅ Admin user created — email: admin@seemgreg.com / password: admin123");
+
+  // Create superadmin user
+  const superPasswordHash = await bcrypt.hash("super123", 12);
+  await prisma.user.upsert({
+    where: { email: "super@seemgreg.com" },
+    update: {},
+    create: {
+      email: "super@seemgreg.com",
+      passwordHash: superPasswordHash,
+      role: "superadmin",
+    },
+  });
+  console.log("✅ Superadmin user created — email: super@seemgreg.com / password: super123");
   console.log("⚠️  Change the password immediately after first login!");
 
   // Seed games

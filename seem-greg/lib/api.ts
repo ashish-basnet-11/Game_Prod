@@ -387,3 +387,58 @@ export async function getSpinLogs(): Promise<SpinLog[]> {
     return res.data;
   });
 }
+
+// ── Settings (Superadmin) ─────────────────────────────────────────────────────
+
+export interface Session {
+  id: string;
+  userAgent: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+  isCurrent: boolean;
+}
+
+/** Superadmin — update email */
+export async function updateEmail(currentPassword: string, newEmail: string): Promise<AdminUser> {
+  return withAutoRefresh(async () => {
+    const res = await apiFetch<ApiResponse<{ user: AdminUser; csrfToken: string }>>("/auth/profile", {
+      method: "PUT",
+      body: JSON.stringify({ currentPassword, newEmail }),
+    });
+    setCsrfToken(res.data.csrfToken);
+    return res.data.user;
+  });
+}
+
+/** Superadmin — change password */
+export async function updatePassword(currentPassword: string, newPassword: string): Promise<void> {
+  return withAutoRefresh(async () => {
+    const res = await apiFetch<ApiResponse<{ csrfToken: string }>>("/auth/password", {
+      method: "PUT",
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    setCsrfToken(res.data.csrfToken);
+  });
+}
+
+/** Superadmin — list active sessions */
+export async function getActiveSessions(): Promise<Session[]> {
+  return withAutoRefresh(async () => {
+    const res = await apiFetch<ApiResponse<Session[]>>("/auth/sessions");
+    return res.data;
+  });
+}
+
+/** Superadmin — revoke a specific session */
+export async function revokeSessionById(id: string): Promise<void> {
+  return withAutoRefresh(async () => {
+    await apiFetch("/auth/sessions/" + id, { method: "DELETE" });
+  });
+}
+
+/** Superadmin — revoke ALL sessions (nuclear option) */
+export async function revokeAllSessions(): Promise<void> {
+  return withAutoRefresh(async () => {
+    await apiFetch("/auth/sessions", { method: "DELETE" });
+  });
+}

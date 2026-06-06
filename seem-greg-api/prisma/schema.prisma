@@ -43,6 +43,8 @@ model RefreshToken {
   token     String   @unique          // hashed token stored here
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent String?                   // browser/device UA string at login
+  ipAddress String?                   // client IP at login
   expiresAt DateTime
   createdAt DateTime @default(now())
   revokedAt DateTime?                 // null = still valid

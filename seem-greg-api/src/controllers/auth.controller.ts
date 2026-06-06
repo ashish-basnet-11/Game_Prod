@@ -35,7 +35,8 @@ function getSecureCookieBase(maxAge: number) {
  */
 async function issueTokens(
   res: Response,
-  user: { id: string; email: string; role: string }
+  user: { id: string; email: string; role: string },
+  req?: Request
 ) {
   const jwtSecret = process.env.JWT_SECRET as string;
 
@@ -50,10 +51,16 @@ async function issueTokens(
   const rawRefresh = crypto.randomBytes(64).toString("hex");
   const hashedRefresh = crypto.createHash("sha256").update(rawRefresh).digest("hex");
 
+  // Capture device info for session tracking
+  const userAgent = req?.headers["user-agent"] || null;
+  const ipAddress = req?.ip || req?.headers["x-forwarded-for"]?.toString() || null;
+
   await prisma.refreshToken.create({
     data: {
       token: hashedRefresh,
       userId: user.id,
+      userAgent,
+      ipAddress,
       expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY),
     },
   });
@@ -100,6 +107,16 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+export const updateEmailSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newEmail: z.string().email("Invalid email address"),
+});
+
+export const updatePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(8, "New password must be at least 8 characters"),
+});
+
 // ── Controllers ───────────────────────────────────────────────────────────────
 
 /**
@@ -125,7 +142,7 @@ export async function login(req: Request, res: Response) {
       return;
     }
 
-    const { csrfToken } = await issueTokens(res, { id: user.id, email: user.email, role: user.role });
+    const { csrfToken } = await issueTokens(res, { id: user.id, email: user.email, role: user.role }, req);
 
     // Only send non-sensitive user info in body — no token
     res.json({
@@ -177,7 +194,7 @@ export async function refresh(req: Request, res: Response) {
       id: stored.user.id,
       email: stored.user.email,
       role: stored.user.role,
-    });
+    }, req);
 
     res.json({
       success: true,
@@ -241,6 +258,210 @@ export async function revokeAllSessions(req: Request, res: Response) {
     res.json({ success: true, message: "All sessions revoked" });
   } catch (err) {
     console.error("Revoke sessions error:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+/**
+ * PUT /auth/profile
+ * Update the current user's email. Requires current password for verification.
+ * Superadmin only.
+ */
+export async function updateEmail(req: Request, res: Response) {
+  const user = (req as any).user;
+  const { currentPassword, newEmail } = req.body as z.infer<typeof updateEmailSchema>;
+
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+    if (!dbUser) {
+      res.status(404).json({ success: false, message: "User not found" });
+      return;
+    }
+
+    if (dbUser.role !== "superadmin") {
+      res.status(403).json({ success: false, message: "Superadmin access required" });
+      return;
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, dbUser.passwordHash);
+    if (!isValid) {
+      res.status(401).json({ success: false, message: "Current password is incorrect" });
+      return;
+    }
+
+    // Check if email is already taken
+    const existing = await prisma.user.findUnique({ where: { email: newEmail } });
+    if (existing && existing.id !== user.id) {
+      res.status(409).json({ success: false, message: "Email already in use" });
+      return;
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: { email: newEmail },
+    });
+
+    // Re-issue tokens with the new email
+    const { csrfToken } = await issueTokens(res, { id: updated.id, email: updated.email, role: updated.role }, req);
+
+    res.json({
+      success: true,
+      data: { user: { id: updated.id, email: updated.email, role: updated.role }, csrfToken },
+      message: "Email updated successfully",
+    });
+  } catch (err) {
+    console.error("Update email error:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+/**
+ * PUT /auth/password
+ * Change the current user's password. Revokes all other sessions.
+ * Superadmin only.
+ */
+export async function updatePassword(req: Request, res: Response) {
+  const user = (req as any).user;
+  const { currentPassword, newPassword } = req.body as z.infer<typeof updatePasswordSchema>;
+
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+    if (!dbUser) {
+      res.status(404).json({ success: false, message: "User not found" });
+      return;
+    }
+
+    if (dbUser.role !== "superadmin") {
+      res.status(403).json({ success: false, message: "Superadmin access required" });
+      return;
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, dbUser.passwordHash);
+    if (!isValid) {
+      res.status(401).json({ success: false, message: "Current password is incorrect" });
+      return;
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash: newHash },
+    });
+
+    // Revoke all existing sessions for security
+    await prisma.refreshToken.updateMany({
+      where: { userId: user.id, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+
+    // Issue fresh tokens for this session
+    const { csrfToken } = await issueTokens(res, { id: dbUser.id, email: dbUser.email, role: dbUser.role }, req);
+
+    res.json({
+      success: true,
+      data: { csrfToken },
+      message: "Password changed successfully. All other sessions have been revoked.",
+    });
+  } catch (err) {
+    console.error("Update password error:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+/**
+ * GET /auth/sessions
+ * List all active (non-revoked, non-expired) sessions for the current user.
+ * Returns device info, IP, and creation date.
+ * Superadmin only.
+ */
+export async function getSessions(req: Request, res: Response) {
+  const user = (req as any).user;
+
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+    if (!dbUser || dbUser.role !== "superadmin") {
+      res.status(403).json({ success: false, message: "Superadmin access required" });
+      return;
+    }
+
+    const sessions = await prisma.refreshToken.findMany({
+      where: {
+        userId: user.id,
+        revokedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      select: {
+        id: true,
+        userAgent: true,
+        ipAddress: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Mark the current session
+    const currentRefresh = req.cookies["sg_refresh"];
+    let currentSessionHash: string | null = null;
+    if (currentRefresh) {
+      currentSessionHash = crypto.createHash("sha256").update(currentRefresh).digest("hex");
+    }
+
+    // To detect current session, we need to check against the hash
+    let currentSessionId: string | null = null;
+    if (currentSessionHash) {
+      const currentToken = await prisma.refreshToken.findUnique({
+        where: { token: currentSessionHash },
+        select: { id: true },
+      });
+      currentSessionId = currentToken?.id || null;
+    }
+
+    const sessionsWithCurrent = sessions.map(s => ({
+      ...s,
+      isCurrent: s.id === currentSessionId,
+    }));
+
+    res.json({ success: true, data: sessionsWithCurrent });
+  } catch (err) {
+    console.error("Get sessions error:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+}
+
+/**
+ * DELETE /auth/sessions/:id
+ * Revoke a specific session by its ID.
+ * Superadmin only.
+ */
+export async function revokeSession(req: Request, res: Response) {
+  const user = (req as any).user;
+  const { id } = req.params;
+
+  try {
+    const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+    if (!dbUser || dbUser.role !== "superadmin") {
+      res.status(403).json({ success: false, message: "Superadmin access required" });
+      return;
+    }
+
+    // Only allow revoking own sessions
+    const token = await prisma.refreshToken.findFirst({
+      where: { id, userId: user.id, revokedAt: null },
+    });
+
+    if (!token) {
+      res.status(404).json({ success: false, message: "Session not found" });
+      return;
+    }
+
+    await prisma.refreshToken.update({
+      where: { id },
+      data: { revokedAt: new Date() },
+    });
+
+    res.json({ success: true, message: "Session revoked" });
+  } catch (err) {
+    console.error("Revoke session error:", err);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 }
