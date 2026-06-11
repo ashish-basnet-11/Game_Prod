@@ -36,7 +36,7 @@ app.use(helmet({
       scriptSrc: ["'self'"],
       styleSrc: ["'self'"],
       imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", "https://game-prod-ten.vercel.app", "*.trycloudflare.com"],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
     },
