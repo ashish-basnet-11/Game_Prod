@@ -15,12 +15,17 @@ const COOKIE_CSRF_NAME = "sg_csrf";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+// ── Fixed Helpers ─────────────────────────────────────────────────────────────
+
 function getSecureCookieBase(maxAge: number) {
+  // Check if running in production OR if dealing with a cross-site tunnel architecture
   const isProd = process.env.NODE_ENV === "production";
+  const isTunnel = true; // Set to true since you're testing from a live Vercel link
+
   return {
-    httpOnly: true,                     // not readable by JS
-    secure: isProd,                     // HTTPS only in prod
-    sameSite: isProd ? ("none" as const) : ("strict" as const), // none required for cross-site
+    httpOnly: true,
+    secure: isProd || isTunnel, // Force Secure over HTTPS tunnels
+    sameSite: (isProd || isTunnel) ? ("none" as const) : ("lax" as const), // "none" allows cross-domain traffic
     maxAge,
     path: "/",
   };
@@ -70,6 +75,7 @@ async function issueTokens(
   const csrfToken = crypto.randomBytes(32).toString("hex");
 
   const isProd = process.env.NODE_ENV === "production";
+  const isTunnel = true;
 
   // Access token cookie
   res.cookie(COOKIE_ACCESS_NAME, accessToken, {
@@ -84,9 +90,9 @@ async function issueTokens(
 
   // CSRF cookie — readable by JS so frontend can extract it
   res.cookie(COOKIE_CSRF_NAME, csrfToken, {
-    httpOnly: false,                    // intentionally readable by JS
-    secure: isProd,
-    sameSite: isProd ? ("none" as const) : ("strict" as const),
+    httpOnly: false,
+    secure: isProd || isTunnel, // Force true
+    sameSite: (isProd || isTunnel) ? ("none" as const) : ("lax" as const), // Force "none"
     maxAge: REFRESH_TOKEN_EXPIRY,
     path: "/",
   });
